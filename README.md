@@ -18,10 +18,10 @@ Currently flare uses only public domain bible translations:
 Todo's:
 -------------------
 - Create a JSON editing and creation page
-- - Possibly this one can be switched on, on the fly. 
+  - Possibly this one can be switched on, on the fly. 
 - Get out of the demo stage for JSON data - I've created the datat in para.json and flare-OldTestamentJesus1.json on my own.
 - Convert the project using Vue Native for mobile
-- - Convert to using JSON or SQLite databases for use in Android
+  - Convert to using JSON or SQLite databases for use in Android
 
 
 
@@ -39,11 +39,11 @@ Technical Summary:
 - **index.html** (HTML) is the latest chart being developed, the data is only demo data and not fully fledged out.
 - **Jesus-in-the-old-testament.html** (HTML) this uses the hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. A copy of this page can host different chart data by modifying the JSON file name near the end of the document.
 - **/assets/css/** (CSS) 
-- - **flare.css** contains:
-- - - Flare specific CSS for both HTML pages
-- - - Dashboard style mods (near the end of the document)
-- - **style.css** contains dashboard specific CSS.
-- - **components.css** contains dashboard specific CSS
+    - **flare.css** contains:
+      - Flare specific CSS for both HTML pages
+      - Dashboard style mods (near the end of the document)
+    - **style.css** contains dashboard specific CSS.
+    - **components.css** contains dashboard specific CSS
 - **/assets/js/** (JavaScript)
 - - **flare.js** contains a D3 v4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Diagram</a>. 
 - - **flare-biblestudy.js** contains: 
