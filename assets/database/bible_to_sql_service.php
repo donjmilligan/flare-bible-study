@@ -17,7 +17,8 @@ abstract class Servant {
 	protected $range = FALSE;
 	protected $prepared=FALSE;
 	/** 
-     * ENTER YOUR MYSQL CREDENTIALS HERE - Init connect variables upon new object. 
+     * Init connect variables when Librarian object constructs
+     * ENTER YOUR MYSQL CREDENTIALS (config) HERE - ie: host, user, password, database 
      */
     public function __construct(){
         $this->host='localhost';
