@@ -1,8 +1,8 @@
 [![Donate](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/hispattern)
 
-Flare Bible Subject Mapping -
+# Flare Bible Study #
 ===============
-<h2>An App for Presentation and Personal Bible Study</h2>
+<h2>An App Intended for Presentations and Fit for Scriptural Research</h2>
 
 Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. You will need to create your own additional data maps using the respective JSON files.
 
@@ -15,25 +15,32 @@ Currently flare uses only public domain bible translations:
 - World English Bible (WEB)
 - Young's Literal Translation (YLT)
 
-Todo's:
+
+- At a bare minimum, you will need to know some basic JSON programming to create new content. 
+  - Feel free to use the additional JSON files at http://flare.hispattern.com for a launching point.
+- **JavaScript, jQuery, JSON, AJAX, HTML5, CSS3, PHP,** and **MySQL** programming skills are necessary for further imporovements.
+
+
+## To Get Started, You'll Need: ##
 -------------------
-- Create a JSON editing and creation page
-  - Possibly this one can be switched on, on the fly. 
-- Get out of the demo stage for JSON data - I've created the cross referencing in para.json and flare-OldTestamentJesus1.json on my own.
-- Convert the project using Vue Native for mobile
-  - Convert to using JSON or SQLite databases for use in Android
 
-
-
-You Will Need
--------------------
-**JavaScript, jQuery, JSON, AJAX, HTML5, CSS3, PHP,** and **MySQL** programming skills for modification.
 1. WAMP or LAMP (I'm running Apache2 with a localhost setup in Linux for development)
 2. MySQL (I'm running mysqlnd 5.0.12-dev)
 3. PHP7 (I'm running PHP 7.2)
 4. All of the sql files (for import) beginning with **t_** at https://github.com/scrollmapper/bible_databases/tree/master/sql
 
-Technical Summary:
+
+## Todo's: ##
+-------------------
+2019 by 3rd Quarter:
+- Create similar editing interface to create JSON files with the visual aid. *they are currently programmed one line at a time*.
+- Get out of the demo stage for JSON data - I've created the cross referencing in para.json and flare-OldTestamentJesus1.json on my own.
+2019 4th Quarter:
+- Convert the project using Vue Native for mobile
+  - Convert to using JSON or SQLite bible databases for use in Android
+  
+
+## Technical Summary: ##
 -------------------
 
 - **index.html** (HTML) is the latest chart being developed, the data is only demo data and not fully fledged out.
@@ -61,15 +68,14 @@ Technical Summary:
   - **bible_to_sql_service.php** Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
 
 
-Bible Database Setup
+## Bible Database Setup ##
 -------------------
 
 **bible_database sql files**
 
 You will need to import the **t_** sql files from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you create for the project. 
 
-phpMyAdmin
--
+### phpMyAdmin ###
 The easiest way to do this is use phpMyAdmin:
 
 1. Create a *database* named ***bible_db*** 
@@ -83,8 +89,7 @@ The easiest way to do this is use phpMyAdmin:
 5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database.
 
 
-MySQL Statements
--
+### MySQL Statements ###
 First login with your root account. 
 
 1. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
@@ -105,8 +110,7 @@ First login with your root account.
 
 5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database. 
 
-Troubleshooting PHP and MySQL
--
+### Setup Troubleshooting for PHP & MySQL ###
 Un-comment the logging statements in ajax.php, so the top of the file looks like this: 
 `<?php
 ini_set('display_errors', 1);/// prints ERROR LOGGING to the page
@@ -116,7 +120,7 @@ Reload your page and use the errors to correct or ask for help.
 
 
 
-Sources: {#project-sources}
+## Sources: {#project-sources} ##
 -------------------
 Flare is based on features from these projects:
 - (Charts) D3.js Data Visualization library  https://github.com/d3/d3
@@ -129,6 +133,6 @@ Flare is based on features from these projects:
 - (Dashboard Styles and Functionality) Flare uses a modified version of the <a href='https://github.com/stisla/stisla'>Stisla dashboard theme</a> 
 
 
-LICENSE:
+## LICENSE: ##
 -------------------
 Flare is under the [MIT License](LICENSE)
