@@ -46,7 +46,6 @@ Feel free to use the additional JSON files at http://flare.hispattern.com for a 
 
 
 ### To Get Started
-****
 1. You'll need a [WAMP](http://www.wampserver.com/en/), [LAMP](https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-ubuntu-18-04), or other web server (I'm running Apache2 with a localhost setup in Linux for development)
 2. ≥[MySQL 5.7](https://dev.mysql.com/downloads/mysql/) installed
 3. ≥[PHP 7.2](https://www.php.net/downloads.php) installed
@@ -55,62 +54,67 @@ Feel free to use the additional JSON files at http://flare.hispattern.com for a 
 6. Clone the repo: `git clone https://github.com/donaldmilligan/flare-bible-study.git`, or download `wget https://github.com/donaldmilligan/flare-bible-study/archive/master.zip` and unzip to your localhost path.
 
 
- I
 ### Bible Database Setup
 
-##### Step 1
-Create a database, user, password, and set user rights for the DB
+**Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method")** to accomplish these tasks.
 
-Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method") to create a database, user, password, grant database rights to user, and complete Step 2 import the sql files to the database .
+**Note:** the default database name in bible_to_sql_service.php is *bible_db*
 
-##### Step 2
+##### Task 1
+Create a database, localhost db user, password, and set user rights for the DB
+
+##### Task 2
 
 import the bible_database sql files
 
-You will need import all of the sql files beginning with **t_** in the [bible_database](https://github.com/scrollmapper/bible_databases/tree/master/sql) sql folder into your database.
+
 
 #### Using phpMyAdmin
-The easiest way to do this is use phpMyAdmin:
+An easy way to do this is use phpMyAdmin. 
 
-1. Create a *database* named ***bible_db*** 
-
-2. Create a *user* named ***bible*** (or name them whatever you want for that matter. Just modify the Servant class construct function accordingly (bible_to_sql_service.php). 
-
-3. Edit privileges for your *user* using the database *bible_db*, and grant all **data** and **structure** privileges. 
-
-4. Import the sql files into the database (be sure to select the database first) using the import tab.
-
-5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database.
-
+1. Login to phpMyAdmin
+2. Create a *database* named ***bible_db*** 
+3. Create a *user* named ***bible*** (or name them whatever you want for that matter. Just modify the Servant class construct function accordingly (bible_to_sql_service.php). 
+4. Edit privileges for your *user* using the *database* option, and grant all **data** and **structure** privileges for the appropriate *database name*. 
+5. Select the proper database, then use the Import tab to import the sql files into the *database*.
+6. Go modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database configuration.
+7. You're done. 
+Not displaying scriptures? Use the [Troubleshooting Errors](#troubleshooting-errors) if you know what you're doing.  
 
 #### Using MySQL
-First login with your root account. 
+In this method, you'll create accomplish the tasks using the command line
 
-1. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
+1. First login with your root account. 
+`mysql -u root -p`
+2. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
 
 `CREATE USER 'bible'@'localhost' IDENTIFIED BY 'YOURPASSWORDHERE';`
 
-2. Create a database named bible_db:
+3. Create a database named bible_db:
 
 `CREATE DATABASE bible_db;`
 
-3. Grant just enough privileges for the user *bible* to manage the database: 
+4. Grant just enough privileges for the user *bible* to manage the database: 
 
 `GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `bible_db`.* TO 'bible'@'localhost';`
 
-4. Import the SQL files into the database. **For example,** using a shell / bash command line from within the sql file containing folder: this uses the mysql root user to import the king james version sql file into a database named *bible_db*
+5. Import the SQL files into the database. **For example,** using a shell / bash command line from within the sql file containing folder: this uses the mysql root user to import the king james version sql file into a database named *bible_db*
 
 `mysql -u root -p bible_db < t_kjv.sql`
 
-5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database. 
+6. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database. 
 
-#### Setup Troubleshooting for PHP & MySQL
+7. You're done. 
+Not displaying scriptures? Use the [Troubleshooting Errors](#troubleshooting-errors) if you know what you're doing.  
+
+#### Troubleshooting Errors
+This will enable php to return error messages that show what is happening,
 Un-comment the logging statements in ajax.php, so the top of the file looks like this: 
 `<?php
 ini_set('display_errors', 1);/// prints ERROR LOGGING to the page
 error_reporting(E_ALL);/// prints ERROR LOGGING to the page`
 
-Reload your page and use the errors displayed by AJAX where the scriptures should be, to correct them or to reference when asking for help. 
+Reload your page and use the error messages displayed by AJAX to correct them, or to reference when asking for help. *The error messages will be displayed where the scriptures should be on each page.*
 
 -------------------
 
