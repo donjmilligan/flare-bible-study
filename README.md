@@ -10,12 +10,11 @@ Here you will find an app that can map cross references and subjects at the same
 
 - [Translations](#translations)
 - [Technical Summary](#technical-summary)
+- [Contributions](#contributions)
 - [Development Guide](#development-guide)
-- [Integrates](#integrates)
-- [Contributors](#contributors)
-- [Contributing](#contributing)
+- [Todo List](#todo-list)
+- [Sources](#sources)
 - [License](#license)
-- [Supported By BrowserStack](#supported-by-browserstack)
 
 ## Translations
 
@@ -56,7 +55,15 @@ Currently flare uses only public domain bible translations:
   - *ajax.php* uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statements, and specifies the translation to query. *un-comment the error checking statements (don't move them) to troubleshoot* 
   - *bible_to_sql_service.php* Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
 
+## Contributions
 
+### Contributing cross references
+At a bare minimum, you will need to know some basic JSON know how to create new cross reference content. 
+Feel free to use the additional JSON files at http://flare.hispattern.com for a launching point.
+
+
+### Contributing code
+*JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved. I'd be excited to have a contributor to the project! 
 
 
 
@@ -141,16 +148,10 @@ error_reporting(E_ALL);/// for debugging`
 Reload your page and use the error messages displayed by AJAX to correct them, or to reference when asking for help. *The error messages will be displayed where the scriptures should be on each page.*
 
 
-### Contributing cross references
-At a bare minimum, you will need to know some basic JSON know how to create new cross reference content. 
-Feel free to use the additional JSON files at http://flare.hispattern.com for a launching point.
 
 
-### Contributing code
-*JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved. Your name will be added to a contributors list on the project when you make a useful improvement.
 
-
-### Todo list
+## Todo list
 
 - More well thought out JSON cross reference data, and subjects
 - Minor Ui improvements like toggling the arrow when tapping off of the side-bar on small screens 
@@ -158,11 +159,6 @@ Feel free to use the additional JSON files at http://flare.hispattern.com for a 
 - Get out of the demo stage for JSON data - I've created the cross referencing in para.json and flare-OldTestamentJesus1.json on my own.
 - Convert the project using Vue Native for mobile
   - Convert to using JSON or SQLite bible databases for use in Android
-
-
--------------------
-
-
 
 
 
@@ -176,7 +172,7 @@ Flare is based on features from these projects:
   - A D3.js v4 **Arc Chart**. **Bible Viz History:** the bible chapter lengths were first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. 
     - The Flare arc chart (flare.js) used in index.html is based on  https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
     - Other resources: https://observablehq.com/@d3/arc-diagram and https://www.d3-graph-gallery.com/arc
-  - A D3.js v3 **Hierarchical Edge Bundling chart** (JavaScript) from https://observablehq.com/@d3/hierarchical-edge-bundling 
+  - A D3.js v3 **Hierarchical Edge Bundling chart** from https://observablehq.com/@d3/hierarchical-edge-bundling 
 - (**REGEX**) <a href='https://github.com/nathankitchen/jquery.biblify'>jQuery Biblify</a> a very robust way to find verses on a page, and originally built to replace the text with links to pages with the scritpures using AJAX. 
 - (**Dashboard Styles and Functionality**) Flare uses a modified version of the <a href='https://github.com/stisla/stisla'>Stisla dashboard theme</a> 
 
@@ -185,6 +181,6 @@ Flare is based on features from these projects:
 
 
 
-## LICENSE: ##
+## License
 
 Flare is under the [MIT License](LICENSE)
