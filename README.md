@@ -64,7 +64,7 @@ In the 4th Quarter of 2019:
     - *components.css* contains dashboard specific CSS
 - **/assets/js/ (JavaScript)**
   - *flare.js* contains:
-    - D3 V4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Chart</a> functionality, extended from <a href='https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js'>bibviz</a> *interesting history <a href='#project-sources'>here</a>.
+    - D3 V4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Chart</a> functionality, extended from <a href='https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js'>bibviz</a> *interesting history [here]("Goto bibleviz").
   - *flare-biblestudy.js* contains: 
     - D3.js v3 *<a href="#project-sources">Hierarchical Edge Bundling Chart</a>* functionality
     - *<a href="#project-sources">REGEX</a>* functions for identifying bible verses on the page
@@ -139,7 +139,7 @@ Reload your page and use the errors to correct or ask for help.
  -------------------
 Flare is based on features from these projects:
 - (Charts) D3.js Data Visualization library  https://github.com/d3/d3
-  - A D3.js v4 Arc chart with bible chapter lengths first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. The Flare arc chart (flare.js) used in index.html is based on https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
+  - A D3.js v4 [Arc Chart](#bibleviz) with bible chapter lengths first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. The Flare arc chart (flare.js) used in index.html is based on https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
     - Other resources: https://observablehq.com/@d3/arc-diagram and https://www.d3-graph-gallery.com/arc
   - A D3.js v3 Hierarchical Edge Bundling chart (JavaScript) from https://observablehq.com/@d3/hierarchical-edge-bundling 
 - (REGEX) <a href='https://github.com/nathankitchen/jquery.biblify'>jQuery Biblify</a> a very robust way to find verses on a page, and originally built to replace the text with links to pages with the scritpures using AJAX. 
