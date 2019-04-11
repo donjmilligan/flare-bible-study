@@ -23,7 +23,7 @@ abstract class Servant {
         $this->host='localhost';
         $this->user='bible';
         $this->pass='bible';
-        $this->db='bible';
+        $this->db='bible_db';
     }
     /** 
      * MYSQLI Connect ---- to db via mysqli 
