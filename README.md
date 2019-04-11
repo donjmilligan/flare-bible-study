@@ -53,16 +53,16 @@ In the 4th Quarter of 2019:
 
 ## Technical Summary: ##
 
-- **/** (HTML)
-- *index.html* is the latest chart being developed, the data is only demo data and not fully fledged out.
-- *Jesus-in-the-old-testament.html* (HTML) this uses the hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. A copy of this page can host different chart data by modifying the JSON file name near the end of the document.
-- **/assets/css/** (CSS) 
+- **/ (HTML)**
+  - *index.html* is the latest chart being developed, the data is only demo data and not fully fledged out.
+  - *Jesus-in-the-old-testament.html* (HTML) this uses the hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. A copy of this page can host different chart data by modifying the JSON file name near the end of the document.
+- **/assets/css/ (CSS)**
     - *flare.css* contains:
       - Flare specific CSS for both HTML pages
       - Dashboard style mods (near the end of the document)
     - *style.css* contains dashboard specific CSS.
     - *components.css* contains dashboard specific CSS
-- **/assets/js/** (JavaScript)
+- **/assets/js/ (JavaScript)**
   - *flare.js* contains:
     - D3 V4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Chart</a> functionality, extended from <a href='https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js'>bibviz</a> *interesting history <a href='#project-sources'>here</a>.
   - *flare-biblestudy.js* contains: 
@@ -70,11 +70,11 @@ In the 4th Quarter of 2019:
     - *<a href="#project-sources">REGEX</a>* functions for identifying bible verses on the page
     - *AJAX* for returning HTML on ajax.php upon making an HTTP GET request. 
    - *functions.js* contains primarily dashboard functionality, but the end of the file also has document ready javascript used by both HTML pages.
-- **/assets/json/** (JSON)
+- **/assets/json/ (JSON)**
   - *para.json* contains demo data used for cross references in index.html. This is the one you can modify for your own cross reference threads. 
   - *flare-OldTestamentJesus1.json* contains demo data for cross references and subject mapping in . They are called from their respective pages.
   - *kjv.json* contains bible stats based on data from the King James translation.
-- **/assets/database/** (PHP/MySQL)
+- **/assets/database/ (PHP/MySQL)**
   - *ajax.php* uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statements, and specifies the translation to query. *un-comment the error checking statements (don't move them) to troubleshoot* 
   - *bible_to_sql_service.php* Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
 
@@ -135,7 +135,8 @@ Reload your page and use the errors to correct or ask for help.
 
 
 
-## Sources: ##  {#project-sources}
+ Sources:  {#project-sources}
+ -------------------
 Flare is based on features from these projects:
 - (Charts) D3.js Data Visualization library  https://github.com/d3/d3
   - A D3.js v4 Arc chart with bible chapter lengths first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. The Flare arc chart (flare.js) used in index.html is based on https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
