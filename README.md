@@ -4,7 +4,20 @@
 
 <h2>An App Intended for Presentations and Fit for Scriptural Research</h2>
 
-Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. You will need to create your own additional data maps using the respective JSON files.
+Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. This relies on user created scriptural cross reference data, and you'll need to create your own additional JSON files, or extend the ones in this project.
+
+## Table of contents
+
+- [Translations](#translations)
+- [Development Guide](#development-guide)
+- [Roadmap](#roadmap)
+- [Integrates](#integrates)
+- [Contributors](#contributors)
+- [Contributing](#contributing)
+- [License](#license)
+- [Supported By BrowserStack](#supported-by-browserstack)
+
+## Translations
 
 Currently flare uses only public domain bible translations: 
 - American Standard-ASV1901 (ASV)
@@ -25,35 +38,36 @@ Feel free to use the additional JSON files at http://flare.hispattern.com for a 
 *JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved.
 
 
-## Table of contents
 
-- [Status](#status)
-- [Quick start](#quick-start)
-- [Roadmap](#roadmap)
-- [Integrates](#integrates)
-- [Contributors](#contributors)
-- [Contributing](#contributing)
-- [License](#license)
-- [Supported By BrowserStack](#supported-by-browserstack)
 
 
 ## Development Guide
-- Clone the repo: `git clone https://github.com/donaldmilligan/flare-bible-study.git` to your local path
-- Make sure you have [>PHP7](https://www.php.net/downloads.php) and [MySQL](https://dev.mysql.com/downloads/mysql/) installed, and a working localhost web server setup.
-
-- Run the `dev` command to start developing
 
 
+
+### To Get Started
+****
+1. You'll need a [WAMP](http://www.wampserver.com/en/), [LAMP](https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-ubuntu-18-04), or other web server (I'm running Apache2 with a localhost setup in Linux for development)
+2. ≥[MySQL 5.7](https://dev.mysql.com/downloads/mysql/) installed
+3. ≥[PHP 7.2](https://www.php.net/downloads.php) installed
+4. mysqli/mysqlnd enabled. [Ubuntu how-to](https://stackoverflow.com/questions/35424982/how-to-enable-mysqli-extension-in-php-7)
+5. Complete the Bible Database Setup 
+6. Clone the repo: `git clone https://github.com/donaldmilligan/flare-bible-study.git`, or download `wget https://github.com/donaldmilligan/flare-bible-study/archive/master.zip` and unzip to your localhost path.
+
+
+ I
 ### Bible Database Setup
 
-**First step: get the bible_database sql files**
+##### Step 1
+Create a database, user, password, and set user rights for the DB
 
-You will need to import the sql files beginning with **t_** from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you'll create for the project.  
+Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method") to create a database, user, password, grant database rights to user, and complete Step 2 import the sql files to the database .
 
-**Second step: create database, user, password, and user rights while importing sql files**
+##### Step 2
 
-Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method") to create a database, user, password, grant database rights to user, and import the sql files to the database .
+import the bible_database sql files
 
+You will need import all of the sql files beginning with **t_** in the [bible_database](https://github.com/scrollmapper/bible_databases/tree/master/sql) sql folder into your database.
 
 #### Using phpMyAdmin
 The easiest way to do this is use phpMyAdmin:
@@ -128,12 +142,7 @@ Want to help Stisla get better? Let's contribute and follow our [contribution gu
 -------------------
 
 
-## To Get Started, You'll Need: ##
 
-1. WAMP or LAMP (I'm running Apache2 with a localhost setup in Linux for development)
-2. MySQL (I'm running mysqlnd 5.0.12-dev)
-3. PHP7 (I'm running PHP 7.2)
-4. All of the sql files beginning with **t_** at https://github.com/scrollmapper/bible_databases/tree/master/sql
 
 -------------------
 
