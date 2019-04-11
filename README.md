@@ -125,7 +125,7 @@ In this method, you'll accomplish the tasks using the command line.
 
 4. Grant just enough privileges for the user *bible* to manage the database: 
 
-`GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `bible_db`.* TO 'bible'@'localhost';`
+`GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON \`bible_db\`.* TO 'bible'@'localhost';`
 
 5. In Linux (or with [MobaXterm](https://mobaxterm.mobatek.net/) in Windows), navigate to the /sql/ folder, or open a terminal there, and use this command to import all_translations.sql into *bible_db*. You will be prompted for your root mysql password
 
@@ -183,9 +183,9 @@ Flare is based on features from these projects:
 
 ## License
 
-The source code in the sql directory is distributed as free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. [full sql directory license details](gpl-3.0)
+The source code in the sql directory is distributed as free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. [Full sql directory license details here](gpl-3.0)
 
-Relevant source code in the root and assets directories are licensed under the [MIT open source license](mit). 
+Relevant source code in the root and assets directories are licensed under the [MIT license](mit). 
 
 All contributions will be licensed in a similar fashion.
 
