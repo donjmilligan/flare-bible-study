@@ -1,7 +1,8 @@
 [![Donate](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/hispattern)
 
 # Flare Bible Study #
-===============
+http://flare.hispattern.com
+
 <h2>An App Intended for Presentations and Fit for Scriptural Research</h2>
 
 Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. You will need to create your own additional data maps using the respective JSON files.
@@ -16,64 +17,76 @@ Currently flare uses only public domain bible translations:
 - Young's Literal Translation (YLT)
 
 
-- At a bare minimum, you will need to know some basic JSON programming to create new content. 
-  - Feel free to use the additional JSON files at http://flare.hispattern.com for a launching point.
-- **JavaScript, jQuery, JSON, AJAX, HTML5, CSS3, PHP,** and **MySQL** programming skills are necessary for further imporovements.
+**Contributing cross references:**
+At a bare minimum, you will need to know some basic JSON programming to create new content. 
+Feel free to use the additional JSON files at http://flare.hispattern.com for a launching point.
+
+
+**Contributing Code:**
+*JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved.
+
+-------------------
 
 
 ## To Get Started, You'll Need: ##
--------------------
 
 1. WAMP or LAMP (I'm running Apache2 with a localhost setup in Linux for development)
 2. MySQL (I'm running mysqlnd 5.0.12-dev)
 3. PHP7 (I'm running PHP 7.2)
-4. All of the sql files (for import) beginning with **t_** at https://github.com/scrollmapper/bible_databases/tree/master/sql
+4. All of the sql files beginning with **t_** at https://github.com/scrollmapper/bible_databases/tree/master/sql
+
+-------------------
 
 
 ## Todo's: ##
--------------------
-2019 by 3rd Quarter:
+
+By the 3rd Quarter of 2019:
 - Create similar editing interface to create JSON files with the visual aid. *they are currently programmed one line at a time*.
 - Get out of the demo stage for JSON data - I've created the cross referencing in para.json and flare-OldTestamentJesus1.json on my own.
-2019 4th Quarter:
+
+In the 4th Quarter of 2019:
 - Convert the project using Vue Native for mobile
   - Convert to using JSON or SQLite bible databases for use in Android
-  
-
-## Technical Summary: ##
+    
 -------------------
 
-- **index.html** (HTML) is the latest chart being developed, the data is only demo data and not fully fledged out.
-- **Jesus-in-the-old-testament.html** (HTML) this uses the hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. A copy of this page can host different chart data by modifying the JSON file name near the end of the document.
+
+## Technical Summary: ##
+
+- **/** (HTML)
+- *index.html* is the latest chart being developed, the data is only demo data and not fully fledged out.
+- *Jesus-in-the-old-testament.html* (HTML) this uses the hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. A copy of this page can host different chart data by modifying the JSON file name near the end of the document.
 - **/assets/css/** (CSS) 
-    - **flare.css** contains:
+    - *flare.css* contains:
       - Flare specific CSS for both HTML pages
       - Dashboard style mods (near the end of the document)
-    - **style.css** contains dashboard specific CSS.
-    - **components.css** contains dashboard specific CSS
+    - *style.css* contains dashboard specific CSS.
+    - *components.css* contains dashboard specific CSS
 - **/assets/js/** (JavaScript)
-  - **flare.js** contains:
+  - *flare.js* contains:
     - D3 V4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Chart</a> functionality, extended from <a href='https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js'>bibviz</a> *interesting history <a href='#project-sources'>here</a>.
-  - **flare-biblestudy.js** contains: 
+  - *flare-biblestudy.js* contains: 
     - D3.js v3 *<a href="#project-sources">Hierarchical Edge Bundling Chart</a>* functionality
     - *<a href="#project-sources">REGEX</a>* functions for identifying bible verses on the page
     - *AJAX* for returning HTML on ajax.php upon making an HTTP GET request. 
-   - **functions.js** contains primarily dashboard functionality, but the end of the file also has document ready javascript used by both HTML pages.
+   - *functions.js* contains primarily dashboard functionality, but the end of the file also has document ready javascript used by both HTML pages.
 - **/assets/json/** (JSON)
-  - **para.json** contains demo data used for cross references in index.html. This is the one you can modify for your own cross reference threads. 
-  - **flare-OldTestamentJesus1.json** contains demo data for cross references and subject mapping in . They are called from their respective pages.
-  - **kjv.json** contains bible stats based on data from the King James translation.
+  - *para.json* contains demo data used for cross references in index.html. This is the one you can modify for your own cross reference threads. 
+  - *flare-OldTestamentJesus1.json* contains demo data for cross references and subject mapping in . They are called from their respective pages.
+  - *kjv.json* contains bible stats based on data from the King James translation.
 - **/assets/database/** (PHP/MySQL)
-  - **ajax.php** uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statements, and specifies the translation to query. *un-comment the error checking statements (don't move them) to troubleshoot* 
-  - **bible_to_sql_service.php** Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
+  - *ajax.php* uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statements, and specifies the translation to query. *un-comment the error checking statements (don't move them) to troubleshoot* 
+  - *bible_to_sql_service.php* Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
+
+-------------------
 
 
 ## Bible Database Setup ##
--------------------
 
 **bible_database sql files**
 
 You will need to import the **t_** sql files from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you create for the project. 
+
 
 ### phpMyAdmin ###
 The easiest way to do this is use phpMyAdmin:
@@ -118,10 +131,11 @@ error_reporting(E_ALL);/// prints ERROR LOGGING to the page`
 
 Reload your page and use the errors to correct or ask for help. 
 
-
-
-## Sources: {#project-sources} ##
 -------------------
+
+
+
+## Sources: ##  {#project-sources}
 Flare is based on features from these projects:
 - (Charts) D3.js Data Visualization library  https://github.com/d3/d3
   - A D3.js v4 Arc chart with bible chapter lengths first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. The Flare arc chart (flare.js) used in index.html is based on https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
@@ -132,7 +146,9 @@ Flare is based on features from these projects:
 - (SQL Databases) The SQL bible databases, also available in <a href='https://github.com/donaldmilligan/bible_databases'>my PHP7 complient fork</a> of  <a href='https://github.com/scrollmapper/bible_databases'>scrollmapper/bible_databases</a>
 - (Dashboard Styles and Functionality) Flare uses a modified version of the <a href='https://github.com/stisla/stisla'>Stisla dashboard theme</a> 
 
+-------------------
+
 
 ## LICENSE: ##
--------------------
+
 Flare is under the [MIT License](LICENSE)
