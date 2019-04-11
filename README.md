@@ -188,5 +188,3 @@ The source code in the sql directory is distributed as free software: you can re
 Relevant source code in the root and assets directories are licensed under the [MIT license](mit). 
 
 All contributions will be licensed in a similar fashion.
-
-
