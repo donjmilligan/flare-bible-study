@@ -183,4 +183,10 @@ Flare is based on features from these projects:
 
 ## License
 
-Flare is under the [MIT License](LICENSE)
+The source code in the sql directory is distributed as free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. [full sql directory license details](gpl-3.0)
+
+Relevant source code in the root and assets directories are licensed under the [MIT open source license](mit). 
+
+All contributions will be licensed in a similar fashion.
+
+

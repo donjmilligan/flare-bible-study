@@ -502,7 +502,7 @@ function bibleFromSQL(str) {
                 }
             };
            // console.log("string var "+str);
-            xmlhttp.open("GET","./assets/database/ajax.php?b="+str+"&t="+paraFilters.translation,true);
+            xmlhttp.open("GET","./sql/ajax.php?b="+str+"&t="+paraFilters.translation,true);
             xmlhttp.send();
             setTimeout(function(){
                 // call niceScroll after, to continually reapply to new elements. 

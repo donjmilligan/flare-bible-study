@@ -440,7 +440,7 @@ function switchContent(id,obj){
      	            }
      	        };
      	       // console.log("string var "+str);
-     	        xmlhttp.open("GET","./assets/database/ajax.php?b="+str,true);
+     	        xmlhttp.open("GET","./sql/ajax.php?b="+str,true);
      	        xmlhttp.send();
      	    }
      	}
