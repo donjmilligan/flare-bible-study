@@ -85,7 +85,9 @@ Not displaying scriptures? Use the [Troubleshooting Errors](#troubleshooting-err
 In this method, you'll create accomplish the tasks using the command line
 
 1. First login with your root account. 
+
 `mysql -u root -p`
+
 2. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
 
 `CREATE USER 'bible'@'localhost' IDENTIFIED BY 'YOURPASSWORDHERE';`
@@ -101,6 +103,8 @@ In this method, you'll create accomplish the tasks using the command line
 5. Import the SQL files into the database. **For example,** using a shell / bash command line from within the sql file containing folder: this uses the mysql root user to import the king james version sql file into a database named *bible_db*
 
 `mysql -u root -p bible_db < t_kjv.sql`
+
+
 
 6. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database. 
 
@@ -123,11 +127,6 @@ Reload your page and use the error messages displayed by AJAX to correct them, o
 
 
 
-
-## Roadmap
-You can find the Stisla road map here: [Stisla Roadmap](https://trello.com/b/M8TMnehE/stisla-roadmap)
-
-
 ## Integrates
 - [Rails](https://github.com/SunDi3yansyah/stisla-rails)
 - [CodeIgniter](https://github.com/KhidirDotID/stisla-codeigniter)
@@ -136,12 +135,7 @@ You can find the Stisla road map here: [Stisla Roadmap](https://trello.com/b/M8T
 - and more...
 
 
-## Contributors
-Stisla is better because of the [contributors](https://github.com/stisla/stisla/graphs/contributors). Thank them too.
 
-
-## Contributing
-Want to help Stisla get better? Let's contribute and follow our [contribution guide](https://github.com/stisla/stisla/blob/master/CONTRIBUTING.md).
 -------------------
 -------------------
 
