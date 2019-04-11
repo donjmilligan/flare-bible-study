@@ -45,19 +45,19 @@ Technical Summary:
     - **style.css** contains dashboard specific CSS.
     - **components.css** contains dashboard specific CSS
 - **/assets/js/** (JavaScript)
-- - **flare.js** contains a D3 v4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Diagram</a>. 
-- - **flare-biblestudy.js** contains: 
-- - - *<a href="#project-sources">Hierarchical Edge Bundling Chart</a>* functionality for a D3 v3 
-- - - *REGEX* functions for identifying bible verses on the page
-- - - *AJAX* for returning HTML on ajax.php upon making an HTTP GET request. 
-- - **functions.js** contains primarily dashboard functionality, but the end of the file also has document ready javascript used by both HTML pages.
+  - **flare.js** contains a D3 v4 <a href="https://observablehq.com/@d3/arc-diagram">Arc Diagram</a>. 
+  - **flare-biblestudy.js** contains: 
+    - *<a href="#project-sources">Hierarchical Edge Bundling Chart</a>* functionality for a D3 v3 
+    - *REGEX* functions for identifying bible verses on the page
+    - *AJAX* for returning HTML on ajax.php upon making an HTTP GET request. 
+   - **functions.js** contains primarily dashboard functionality, but the end of the file also has document ready javascript used by both HTML pages.
 - **/assets/json/** (JSON)
-- - **para.json** contains demo data used for cross references in index.html. This is the one you can modify for your own cross reference threads. 
-- - **flare-OldTestamentJesus1.json** contains demo data for cross references and subject mapping in . They are called from their respective pages.
-- - **kjv.json** contains bible stats based on data from the King James translation.
+  - **para.json** contains demo data used for cross references in index.html. This is the one you can modify for your own cross reference threads. 
+  - **flare-OldTestamentJesus1.json** contains demo data for cross references and subject mapping in . They are called from their respective pages.
+  - **kjv.json** contains bible stats based on data from the King James translation.
 - **/assets/database/** (PHP/MySQL)
-- - **ajax.php** uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statents, and specifies the translation to query. *uncomment the error checking statments (don't move them) to troubleshoot* 
-- - **bible_to_sql_service.php** Librarian extends Servant. Only upon successufl preperation of a statment can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
+  - **ajax.php** uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statents, and specifies the translation to query. *uncomment the error checking statments (don't move them) to troubleshoot* 
+  - **bible_to_sql_service.php** Librarian extends Servant. Only upon successufl preperation of a statment can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
 
 
 Bible Database Setup
@@ -121,12 +121,12 @@ Sources: {#project-sources}
 -------------------
 Flare is based features from these projects:
 - (Charts) D3.js version 3 and 4 https://github.com/d3/d3
-- - A D3.js v3 Hierarchical Edge Bundling chart (JavaScript) from https://observablehq.com/@d3/hierarchical-edge-bundling 
-- - A D3.js v4 Arc chart at https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js 
-- - - Other resources: https://observablehq.com/@d3/arc-diagram and https://www.d3-graph-gallery.com/arc
+  - A D3.js v3 Hierarchical Edge Bundling chart (JavaScript) from https://observablehq.com/@d3/hierarchical-edge-bundling 
+  - A D3.js v4 Arc chart at https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js 
+    - Other resources: https://observablehq.com/@d3/arc-diagram and https://www.d3-graph-gallery.com/arc
 - (REGEX) jQuery Biblify a very robust way to find verses on a page, plus AJAX for their modification  https://github.com/nathankitchen/jquery.biblify
-- (Scriptures) PHP and MySQL from my fork of scrollmapper/bible_databases https://github.com/donaldmilligan/bible_databases
-- (SQL Databases) The original SQL bible databases, also available in my fork of scrollmapper/bible_databases https://github.com/donaldmilligan/bible_databases/tree/master/sql
+- (Scriptures) PHP and MySQL from my PHP7 complient fork of scrollmapper/bible_databases https://github.com/donaldmilligan/bible_databases
+- (SQL Databases) The SQL bible databases, also available in my fork of scrollmapper/bible_databases https://github.com/donaldmilligan/bible_databases/tree/master/sql
 - (Dashboard Styles and Functionality) Flare uses a modified version of the Stisla dashboard theme at https://github.com/stisla/stisla - This is temporary until the app goes mobile. 
 
 
