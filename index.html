@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no" name="viewport">
+	<title>Flare Bible Study</title>
+	
+	<!-- General CSS Files -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.materialdesignicons.com/3.5.95/css/materialdesignicons.min.css" type="text/css" media="all" />
+	<!-- Google Fonts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+	<script>
+	  WebFont.load({
+	    google: {"families":["Montserrat:400,500,600,700","Patua+One","Special+Elite","Niramit"]},
+	    active: function() {
+	        sessionStorage.fonts = true;
+	    }
+	  });
+	</script>
+	<!-- dashboard CSS -->
+	<link rel="stylesheet" href="assets/css/style.css">
+	<link rel="stylesheet" href="assets/css/components.css">
+	<!-- CSS for both versions of flare + dashbord mods CSS -->
+	<link rel="stylesheet" type="text/css" media="all" href="assets/css/flare.css?" />
+</head>
+<body>
+  	<div id="app">
+    	<div class="main-wrapper main-wrapper-1">
+    	
+			<!-- NAVBAR -->
+	    	<div class="navbar-bg"></div>
+	    	<nav class="navbar navbar-expand-lg main-navbar">
+		    	<!-- toggle button -->
+		    	<form class="form-inline mr-auto">
+		    	    <ul class="navbar-nav mr-3">
+		    		    <li>
+		    	        	<i class="sidebar-toggle fas fa-chevron-left" data-toggle='sidebar'> </i>
+		    	      	</li>
+		    	    </ul>
+		    	</form>
+		    	<!-- end toggle button -->
+
+		    	<!-- page title (top right) -->
+		    	<h1>fl<i class="fas fa-fire fa-rotate-45"></i>re</h1>
+		    	<!-- end page title -->
+
+	    	 	<!-- settings (top right) -->
+	    	  	<ul class="navbar-nav navbar-right">
+		    	    <li class="dropdown dropdown-list-toggle">
+		    	      <a href="#" data-toggle="dropdown" class="nav-link notification-toggle nav-link-lg"><i class="fas fa-cog"></i></a>
+		    	      <div class="dropdown-menu dropdown-list dropdown-menu-right">
+		    	        <div class="dropdown-header">Settings
+		    	          <div class="float-right">
+		    	            <a href="#">close</a>
+		    	          </div>
+		    	        </div>
+		    	        <div class="dropdown-list-content dropdown-list-icons">
+		    	          <div class="dropdown-item dropdown-item-unread">
+		    	            <div class="dropdown-item-desc">
+		    	              <div class="form-group">
+		    	                <label>Text Size</label><br>
+		    	                <input id='text-range' min="50" max="300" value='100' step="10" type="range" class="form-control">
+		    	              </div>
+		    	            </div>
+		    	          </div>
+		    	          <div class="dropdown-item">
+		    	            <div class="dropdown-item-desc">
+		    	            </div>
+		    	          </div>
+		    	        </div>
+		    	        <div class="dropdown-footer text-center">
+		    	        </div>
+		    	      </div>
+		    	    </li>
+	    	 	</ul>
+	    	 	<!-- end settings -->
+	    	</nav>
+			<!-- // END NAVBAR -->
+
+	    	<!-- SIDEBAR -->
+	    	<div class="main-sidebar sidebar-style-2">
+	    	  	<aside id="sidebar-wrapper">
+		    	    <div class="sidebar-brand">
+		    	      <a href="index.html"><i class="mdi mdi-fire"></i> Flare BIBLE STUDY</a>
+		    	    </div>
+		    	    <div class="sidebar-brand sidebar-brand-sm">
+		    	      <a href="index.html"><h1><i class="fas fa-fire fa-rotate-45"></i></h1></a>
+		    	    </div>
+	    	    	<ul class="sidebar-menu">
+		    	        <li class="menu-header">Version 2.0 Demo</li>
+		    	        <li class="nav-item dropdown active">
+		    	          <a href="#" class="nav-link has-dropdown"><i class="fas fa-scroll"></i><span>Flare</span></a>
+		    	          <ul class="dropdown-menu">
+		    	            <li><a class="nav-link" href="index.html">Flare</a></li>
+		    	            <li><a class="nav-link" href="https://Hispattern.com">HisPattern.com</a></li>
+		    	          </ul>
+		    	        </li>
+		    	        <li class="menu-header">Version 1.0 Subject Maps</li>
+		    	        <li class="nav-item dropdown">
+		    	          <a href="#" class="nav-link has-dropdown" data-toggle="dropdown"><i class="fas fa-cross"></i> <span>Jesus</span></a>
+		    	          <ul class="dropdown-menu">
+		    	            <li><a class="nav-link" href="Jesus-in-the-old-testament.html">Old Testament Jesus 1</a></li>
+		    	          </ul>
+		    	        </li>
+	    	      	</ul>
+	    	  	</aside>
+	    	</div>
+	    	<!-- // END SIDEBAR -->
+
+		    <!-- MAIN CONTENT  -->
+		    <div class="main-content">
+		    	
+		    	<!-- SCRIPTURES -->
+		        <section class="section">
+		    		<div class="section-body" id="showTexts">
+		              <!-- AJAX displays here (scriptures) -->
+		        	</div>
+		        </section>
+		        <!-- // END SCRIPTURES -->
+
+		        <!-- D3 + TABS -->
+		        <section class="section">
+		          	<div class="section-body">
+		            	<div class="row">
+			                <!-- D3 column-->
+			                <div class="col-12 col-xl-9">
+			                  <div class="card">
+			                    <div class="card-header">
+			                      <div class="form-group">
+			                          <select class="form-control" id="translation-select">
+			                            <option value="t_kjv">King James Version</option>
+			                            <option value="t_asv">American Standard Version</option>
+			                            <option value="t_dby">Darby English Bible</option>
+			                            <option value="t_bbe">Bible in Basic English</option>
+			                            <option value="t_web">Webster's Bible</option>
+			                            <option value="t_web">World English Bible</option>
+			                            <option value="t_ylt">Young's Literal Translation</option>
+			                          </select>
+			                      </div>
+			                      <div class="form-group">
+			                        <select class="form-control book-select" id="book-select">
+			                            <option value="All" selected="">All Books</option>
+			                        </select>
+			                      </div>
+			                      <div class="form-group">
+			                        <select class="form-control type-select" id="type-select">
+			                            <option value="All">All Subjects</option>
+			                        </select>
+			                      </div>
+			                      <div class="form-group">
+			                        <select class="form-control" id="color-select">
+			                          <option value="Blue">Blue</option>
+			                          <option value="Purple">Purple</option>
+			                          <option value="Black">Black</option>
+			                          <option value="Rainbow">Rainbow</option>
+			                        </select>
+			                      </div>
+			                    </div>
+			                    <div id="bible-chart" class="card-body d-flex justify-content-center position-relative">
+
+			                        <svg id="paradoxes-chart" ></svg>
+
+			                         <div id="filter-notice" style="opacity: 0; display: none;">
+			                             <i class="icon-hand-left"></i> Check out these filters to modify the chart!
+			                         </div>
+			                         <div id="para-notice" style="opacity: 0; display: none;">
+			                             <i class="icon-hand-down"></i> Click a line for more info!
+			                         </div>
+			                         <div id="thread-desc" style="opacity: 1;"></div>
+			                    </div>
+			                    <div class="card-footer bg-whitesmoke">
+			                      <div id="thread-content" style="opacity: 1;"></div>  
+			                    </div>
+			                  </div>
+			                </div>
+			                <!-- // end D3 column -->
+
+			                <!-- tabs column -->
+				            <div class="col-12 col-md-3 mobile">
+				                <div class="card nicescroll-box info-section-v2">
+				                    <div class="wrap">
+				                        <div class="card-body">
+					                        <ul class="nav nav-pills" id="myTab3" role="tablist">
+					                         
+					                          <li class="nav-item">
+					                            <a class="nav-link active" id="profile-tab3" data-toggle="tab" href="#about" role="tab" aria-controls="profile" aria-selected="false"><i class="mdi mdi-script-text"></i></a>
+					                          </li>
+					                          <li class="nav-item">
+					                            <a class="nav-link" id="notes-tab3" data-toggle="tab" href="#instructions" role="tab" aria-controls="notes" aria-selected="false"><i class="mdi mdi-shield-key"></i></a>
+					                          </li>
+					                        </ul>
+				                        	<hr class="pt-1 pb-3">
+				                        	<div class="tab-content" id="myTabContent2">
+						                        <div class="tab-pane fade show tabcontent active" id="about" role="tabpanel" aria-labelledby="profile-tab3">
+
+						                            <h2 class="fi77">Alpha Demo</h2>
+						                            <p style="font-size: large;"  class="fi12">See the menu for past studies</p>
+						                            <h5>Here's how it works so far</h5>
+						                            <p>The book and subject options until there are more studies, otherwise they can leave you without any options.</p>
+						                            <p><span class="source-item">1. </span>Each one of the blue and purple lines is a sequential chapter of the bible. The length of each chapter is shown. <strong> hover over each chapter to see more stats about it, or click on the chapter to read the chapter</strong></p><br/>
+						                            <p class="click"><span class="source-item">2. </span>The arcs show links between bible verses. Click on them to compare the two verses.</p><br/>
+						                            <p class="click"><span class="source-item">3. </span> This is a work in progress, there is lots to do. I am really looking forward to the simplicity of these studies. Anyone with 5 minutes can come and do some comparison once the notes are up for each link also.</p>
+
+						                            <div class="quotecontent"><i class="mdi mdi-format-quote-open"></i><p class="text_justify fi33"> And afterward, I will pour out My Spirit on all people. Your sons and daughters will prophesy, your old men will dream dreams, your young men will see visions. Even on My menservants and maidservants, I will pour out My Spirit in those days. I will show wonders in the heavens and on the earth, blood and fire and columns of smoke. The sun will be turned to darkness and the moon to blood before the coming of the great and awesome Day of the LORD. And everyone who calls on the name of the LORD will be saved; for on Mount Zion and in Jerusalem there will be deliverance, as the LORD promised, among the remnant called by the LORD.</p></div>
+						                            <div class="verse-container book fi33">Joel 2:28-32</div>
+						                          <div class="clear"></div>
+						                        </div>
+				                         
+						                        <div class="tab-pane fade tabcontent" id="instructions" role="tabpanel" aria-labelledby="contact-tab3">
+						                            <h3>Coming Soon! Notes for each verse comparison to be displayed here.</h3><br><br>
+						                            <i class="mdi mdi-pan" style="font-size: 300%"></i>&nbsp;&nbsp;&nbsp; <i class="mdi mdi-gesture-pinch" style="font-size: 300%"></i><br><br>
+						                            Pan and zoom to your hearts content, although you will need to be on a desktop or laptop. <br>
+						                            Use <i class="mdi mdi-format-line-weight"></i> the drop down lists to sort the studies.. <br><br><br>
+						                            <h5>Unlike the Hierarchical relationships in version 1.0, these are Lateral Relationships</h5>
+						                            <ul>
+						                              <li>Double-Click on the scripture boxes to go in and out of full screen.</li>
+						                              <li>Click on the  <span style="color: #2aa3b1;"><i class="mdi mdi-looks"></i></span> arcs to compare the texts</li>
+						                              <li>Click on the  <span style="color: #2aa3b1;"><i class="mdi mdi-format-align-left mdi-rotate-90"></i> Blue</span> and <span style="color: #6e4b91;"><i class="mdi mdi-format-align-left mdi-rotate-90"></i> Purple</span> rectangles to link to the full chapters</li>
+						                              <li>The verse numbers above link  to the Hebrew and Greek texts for each verse</li>
+						                            </ul>
+						                            <br>
+				                          		</div>
+				                        	</div>
+				                      	</div>
+				                    </div>
+				                </div>
+		                	</div>
+		                	<!-- // end tabs column -->
+		            	</div>
+		            	<!-- // end row -->
+		        	</div>
+		      	</section>
+		        <!-- // END D3 + TABS -->
+		    </div>
+
+    		<footer class="main-footer">
+      			<div class="footer-left">
+          			fork this on <a href="https://github.com/donaldmilligan/flare-bible-study">Github</a>
+      			</div>
+                <div class="footer-right">
+                     &copy;  2019 (MIT)
+          		</div>
+      		</footer>
+        </div>
+	</div>
+
+	<!-- jQuery -->
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+	<!-- Bootstrap JS Scripts -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<!-- JS Libraies --> 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.nicescroll/3.7.6/jquery.nicescroll.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.1.0/d3.min.js"></script>
+	<!-- Flare --> 
+	<script src="./assets/js/flare.js"></script>
+
+	<!-- stisla JS Files -->
+	<script src="./assets/js/stisla.js"></script>
+	<!-- functions -->
+	<script src="./assets/js/functions.js"></script>
+
+</body>
+</html>
+
