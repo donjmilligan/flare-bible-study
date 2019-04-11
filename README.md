@@ -1,7 +1,6 @@
 [![Donate](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/hispattern)
 
 # Flare Bible Study #
-http://flare.hispattern.com
 
 <h2>An App Intended for Presentations and Fit for Scriptural Research</h2>
 
@@ -25,6 +24,7 @@ Feel free to use the additional JSON files at http://flare.hispattern.com for a 
 **Contributing Code:**
 *JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved.
 
+-------------------
 -------------------
 
 
@@ -78,8 +78,8 @@ In the 4th Quarter of 2019:
   - *ajax.php* uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statements, and specifies the translation to query. *un-comment the error checking statements (don't move them) to troubleshoot* 
   - *bible_to_sql_service.php* Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
 
--
--
+-------------------
+-------------------
 
 
 ## Bible Database Setup ##
