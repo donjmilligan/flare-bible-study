@@ -24,6 +24,106 @@ Feel free to use the additional JSON files at http://flare.hispattern.com for a 
 **Contributing Code:**
 *JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved.
 
+
+## Table of contents
+
+- [Status](#status)
+- [Quick start](#quick-start)
+- [Roadmap](#roadmap)
+- [Integrates](#integrates)
+- [Contributors](#contributors)
+- [Contributing](#contributing)
+- [License](#license)
+- [Supported By BrowserStack](#supported-by-browserstack)
+
+
+## Development Guide
+- Clone the repo: `git clone https://github.com/donaldmilligan/flare-bible-study.git` to your local path
+- Make sure you have [>PHP7](https://www.php.net/downloads.php) and [MySQL](https://dev.mysql.com/downloads/mysql/) installed, and a working localhost web server setup.
+
+- Run the `dev` command to start developing
+
+
+### Bible Database Setup
+
+**First step: get the bible_database sql files**
+
+You will need to import the sql files beginning with **t_** from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you'll create for the project.  
+
+**Second step: create database, user, password, and user rights while importing sql files**
+
+Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method") to create a database, user, password, grant database rights to user, and import the sql files to the database .
+
+
+#### Using phpMyAdmin
+The easiest way to do this is use phpMyAdmin:
+
+1. Create a *database* named ***bible_db*** 
+
+2. Create a *user* named ***bible*** (or name them whatever you want for that matter. Just modify the Servant class construct function accordingly (bible_to_sql_service.php). 
+
+3. Edit privileges for your *user* using the database *bible_db*, and grant all **data** and **structure** privileges. 
+
+4. Import the sql files into the database (be sure to select the database first) using the import tab.
+
+5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database.
+
+
+#### Using MySQL
+First login with your root account. 
+
+1. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
+
+`CREATE USER 'bible'@'localhost' IDENTIFIED BY 'YOURPASSWORDHERE';`
+
+2. Create a database named bible_db:
+
+`CREATE DATABASE bible_db;`
+
+3. Grant just enough privileges for the user *bible* to manage the database: 
+
+`GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `bible_db`.* TO 'bible'@'localhost';`
+
+4. Import the SQL files into the database. **For example,** using a shell / bash command line from within the sql file containing folder: this uses the mysql root user to import the king james version sql file into a database named *bible_db*
+
+`mysql -u root -p bible_db < t_kjv.sql`
+
+5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database. 
+
+#### Setup Troubleshooting for PHP & MySQL
+Un-comment the logging statements in ajax.php, so the top of the file looks like this: 
+`<?php
+ini_set('display_errors', 1);/// prints ERROR LOGGING to the page
+error_reporting(E_ALL);/// prints ERROR LOGGING to the page`
+
+Reload your page and use the errors displayed by AJAX where the scriptures should be, to correct them or to reference when asking for help. 
+
+-------------------
+
+
+
+
+
+
+
+## Roadmap
+You can find the Stisla road map here: [Stisla Roadmap](https://trello.com/b/M8TMnehE/stisla-roadmap)
+
+
+## Integrates
+- [Rails](https://github.com/SunDi3yansyah/stisla-rails)
+- [CodeIgniter](https://github.com/KhidirDotID/stisla-codeigniter)
+- Laravel (let's contribute)
+- Django (let's contribute)
+- and more...
+
+
+## Contributors
+Stisla is better because of the [contributors](https://github.com/stisla/stisla/graphs/contributors). Thank them too.
+
+
+## Contributing
+Want to help Stisla get better? Let's contribute and follow our [contribution guide](https://github.com/stisla/stisla/blob/master/CONTRIBUTING.md).
 -------------------
 -------------------
 
@@ -82,61 +182,7 @@ In the 4th Quarter of 2019:
 -------------------
 
 
-## Bible Database Setup ##
 
-**First step: get the bible_database sql files**
-
-You will need to import the sql files beginning with **t_** from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you'll create for the project.  
-
-**Second step: create database, user, password, and user rights while importing sql files**
-
-Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method") to create a database, user, password, grant database rights to user, and import the sql files to the database .
-
-
-### Using phpMyAdmin ###
-The easiest way to do this is use phpMyAdmin:
-
-1. Create a *database* named ***bible_db*** 
-
-2. Create a *user* named ***bible*** (or name them whatever you want for that matter. Just modify the Servant class construct function accordingly (bible_to_sql_service.php). 
-
-3. Edit privileges for your *user* using the database *bible_db*, and grant all **data** and **structure** privileges. 
-
-4. Import the sql files into the database (be sure to select the database first) using the import tab.
-
-5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database.
-
-
-### Using MySQL ###
-First login with your root account. 
-
-1. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
-
-`CREATE USER 'bible'@'localhost' IDENTIFIED BY 'YOURPASSWORDHERE';`
-
-2. Create a database named bible_db:
-
-`CREATE DATABASE bible_db;`
-
-3. Grant just enough privileges for the user *bible* to manage the database: 
-
-`GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `bible_db`.* TO 'bible'@'localhost';`
-
-4. Import the SQL files into the database. **For example,** using a shell / bash command line from within the sql file containing folder: this uses the mysql root user to import the king james version sql file into a database named *bible_db*
-
-`mysql -u root -p bible_db < t_kjv.sql`
-
-5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database. 
-
-### Setup Troubleshooting for PHP & MySQL ###
-Un-comment the logging statements in ajax.php, so the top of the file looks like this: 
-`<?php
-ini_set('display_errors', 1);/// prints ERROR LOGGING to the page
-error_reporting(E_ALL);/// prints ERROR LOGGING to the page`
-
-Reload your page and use the errors displayed by AJAX where the scriptures should be, to correct them or to reference when asking for help. 
-
--------------------
 
 
 
