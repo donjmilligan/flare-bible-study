@@ -78,17 +78,22 @@ In the 4th Quarter of 2019:
   - *ajax.php* uses HTTP GET parameters to wrap specified scriptures in HTML. Creates a Librarian object, prepares statements, and specifies the translation to query. *un-comment the error checking statements (don't move them) to troubleshoot* 
   - *bible_to_sql_service.php* Librarian extends Servant. Only upon successful preparation of a statement can Librarian query the database. ***use the construct function in Servant to specify host, user, password, and database**. \*\*Both classes contain extra functions for testing* 
 
--------------------
+-
+-
 
 
 ## Bible Database Setup ##
 
-**bible_database sql files**
+**First step: get the bible_database sql files**
 
-You will need to import the **t_** sql files from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you create for the project. 
+You will need to import the sql files beginning with **t_** from https://github.com/scrollmapper/bible_databases/tree/master/sql into the database you'll create for the project.  
+
+**Second step: create database, user, password, and user rights while importing sql files**
+
+Use [phpMyAdmin](#using-phpmyadmin "View phpMyAdmin method") or [MySQL statements](#using-mysql "See MySQL method") to create a database, user, password, grant database rights to user, and import the sql files to the database .
 
 
-### phpMyAdmin ###
+### Using phpMyAdmin ###
 The easiest way to do this is use phpMyAdmin:
 
 1. Create a *database* named ***bible_db*** 
@@ -102,7 +107,7 @@ The easiest way to do this is use phpMyAdmin:
 5. Make sure you modify the Servant class construct function (bible_to_sql_service.php) to match your host, user, password, and database.
 
 
-### MySQL Statements ###
+### Using MySQL ###
 First login with your root account. 
 
 1. Create a localhost user: for example, with the name *bible* (replace *YOURPASSWORDHERE* with your own, but keep the hyphens):
@@ -129,7 +134,7 @@ Un-comment the logging statements in ajax.php, so the top of the file looks like
 ini_set('display_errors', 1);/// prints ERROR LOGGING to the page
 error_reporting(E_ALL);/// prints ERROR LOGGING to the page`
 
-Reload your page and use the errors to correct or ask for help. 
+Reload your page and use the errors displayed by AJAX where the scriptures should be, to correct them or to reference when asking for help. 
 
 -------------------
 
@@ -141,7 +146,8 @@ Flare is based on features from these projects:
 - (**Scriptures**) PHP and MySQL from <a href='https://github.com/donaldmilligan/bible_databases'>my PHP7 complient fork</a> of scrollmapper/bible_databases 
 - (**SQL Databases**) The SQL bible databases, also available in <a href='https://github.com/donaldmilligan/bible_databases'>my PHP7 complient fork</a> of  <a href='https://github.com/scrollmapper/bible_databases'>scrollmapper/bible_databases</a>
 - (**Charts**) D3.js Data Visualization library  https://github.com/d3/d3
-  - A D3.js v4 **Arc Chart** with bible chapter lengths first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. The Flare arc chart (flare.js) used in index.html is based on https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
+  - A D3.js v4 **Arc Chart**. **Bible Viz History:** the bible chapter lengths were first visualized in a colaboration between Carnegie Mellon professor <a href='http://www.chrisharrison.net/index.php/Visualizations/BibleViz'>Chris Harrison</a> and Lutheren pastor <a href='http://scimaps.org/mapdetail/visualizing_bible_cr_125'>Christoph Römhild</a>. 
+    - The Flare arc chart (flare.js) used in index.html is based on  https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
     - Other resources: https://observablehq.com/@d3/arc-diagram and https://www.d3-graph-gallery.com/arc
   - A D3.js v3 **Hierarchical Edge Bundling chart** (JavaScript) from https://observablehq.com/@d3/hierarchical-edge-bundling 
 - (**REGEX**) <a href='https://github.com/nathankitchen/jquery.biblify'>jQuery Biblify</a> a very robust way to find verses on a page, and originally built to replace the text with links to pages with the scritpures using AJAX. 
