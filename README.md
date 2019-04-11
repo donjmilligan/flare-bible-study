@@ -125,7 +125,7 @@ In this method, you'll accomplish the tasks using the command line.
 
 4. Grant just enough privileges for the user *bible* to manage the database: 
 
-`GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON `bible_db`.* TO 'bible'@'localhost';`
+`GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, INDEX, ALTER, CREATE TEMPORARY TABLES, CREATE VIEW, EVENT, TRIGGER, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EXECUTE ON ``` `bible_db` ```.* TO 'bible'@'localhost';`
 
 5. In Linux (or with [MobaXterm](https://mobaxterm.mobatek.net/) in Windows), navigate to the /sql/ folder, or open a terminal there, and use this command to import all_translations.sql into *bible_db*. You will be prompted for your root mysql password
 
