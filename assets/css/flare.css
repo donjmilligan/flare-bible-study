@@ -83,7 +83,7 @@ text.node{background-color: #FFF; background: #FFF;}
     #showTexts{ 
         display: block; 
         position:relative; 
-        padding:0 112px 0 0x;
+        padding:0 112px 0 0;
     }
     #showTexts h5 {color: #777; text-align: left; font-family: 'Patua One', serif; font-size: 17px; margin-bottom: 1em;}
     .versenum{ display:inline; font-weight:700; cwidth:2em; color:#14485F;}
@@ -264,7 +264,7 @@ div.card.nicescroll-box:nth-child(2){z-index: 9999; top:40px !important;right:10
     height:400px;
   }
 }
-@media (max-width:; 580px){
+@media (max-width: 580px){
   svg#paradoxes-chart:first-child{
     transform: rotate(-90deg);
      -webkit-transform: rotate(-90deg);
