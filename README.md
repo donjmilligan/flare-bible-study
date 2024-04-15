@@ -6,6 +6,8 @@
 
 Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. This relies on user created scriptural cross reference data, and you'll need to create your own additional JSON files, or extend the ones in this project.
 
+Most files other than index.php and mobile.php use the D3.js hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. 
+
 ## Table of contents
 
 - [Translations](#translations)
@@ -30,9 +32,14 @@ Currently flare uses only public domain bible translations:
 
 ## Technical Summary
 
-- **/ (HTML)**
-  - *index.html* is the latest chart being developed, the data is only demo data and not fully fledged out.
-  - *Jesus-in-the-old-testament.html* (HTML) this uses the hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. A copy of this page can host different chart data by modifying the JSON file name near the end of the document.
+- **/ (PHP)**
+  - *index.php* is the latest chart being developed, the data is only demo data and not fully fledged out.
+  - *2019WhatIsSpirit.php*  is a map of definitions according to verses that describe the ways the work spirit is used througout the bible. 
+  - *OldTestamentJesus1_v2017.php*  is a map of subjects and verses about Jesus from the Old Testament. 
+  - *OldTestamentJesus2_v2017.php*  is a map of verses in Matthew that have roots in the Old Testament.
+  - *MessagesOfHope_v2017.php*  is a map of subjects and verses that contain positive primises and affirmations. 
+  - *OldTestamentJesus2_v2017.php*  is a map of verses in Matthew that have roots in the Old Testament.
+
 - **/assets/css/ (CSS)**
     - *flare.css* contains:
       - Flare specific CSS for both HTML pages
@@ -61,14 +68,10 @@ Currently flare uses only public domain bible translations:
 At a bare minimum, you will need to know some basic JSON know how to create new cross reference content. 
 Feel free to use the additional JSON files at http://flare.hispattern.com for a launching point.
 
-
 ### Contributing code
 *JavaScript, jQuery, JSON* are the primary technologies used, with  *HTML* and *CSS* for layout and styling. However *AJAX, PHP,* and *MySQL* are also involved. I'd be excited to have a contributor to the project! 
 
-
-
 ## Development Guide
-
 
 ### To Get Started
 1. You'll need a [WAMP](http://www.wampserver.com/en/), [LAMP](https://www.digitalocean.com/community/tutorials/how-to-install-linux-apache-mysql-php-lamp-stack-ubuntu-18-04), or other web server (I'm running Apache2 with a localhost setup in Linux for development)
@@ -91,7 +94,7 @@ Create a database, localhost db user, password, and set user rights for the db
 
 ##### Task 2
 
-import the all_translations.sql file into the db you created
+import the sql/all_translations.sql file into the db you created
 
 
 
@@ -147,21 +150,56 @@ error_reporting(E_ALL);/// for debugging`
 
 Reload your page and use the error messages displayed by AJAX to correct them, or to reference when asking for help. *The error messages will be displayed where the scriptures should be on each page.*
 
+#### Setting Up Environment Variables
 
+The database/bible_to_sql_service.php file makes connections to the database, and it relies on environment variables that hold information like the DB host, name, user, and pass. 
 
+##### Windows
 
+1. **Using System Properties**
+   - Right-click on `This PC` and select `Properties`.
+   - Click on `Advanced system settings`.
+   - In the `System Properties` window, go to the `Advanced` tab and click on `Environment Variables`.
+   - In the `Environment Variables` window, you can add or modify user and system variables:
+     - To add a new variable, click `New` and enter the `Variable name` and `Variable value`.
+     - To edit an existing variable, select it and click `Edit`.
+
+2. **Using Command Line**
+   - Open Command Prompt and use the `setx` command:
+     ```cmd
+     setx DB_HOST "YOURINFOHERE"
+     setx DB_NAME "YOURINFOHERE"
+     setx DB_USER "YOURINFOHERE"
+     setx DB_PASS "YOURINFOHERE"
+     ```
+   - Note: `setx` modifies the environment variable permanently, available in future command prompts, not in the current session. For the current session, you may use `set` instead.
+
+##### Linux
+
+1. **Using bash shell**
+   - Open a terminal window.
+   - You can set temporary environment variables in the current session:
+     ```bash
+     export DB_HOST=YOURINFOHERE
+     export DB_NAME=YOURINFOHERE
+     export DB_USER=YOURINFOHERE
+     export DB_PASS=YOURINFOHERE
+     ```
+   - To make the changes permanent, add the `export` commands to your `~/.bashrc` or `~/.profile` file and then run:
+     ```bash
+     source ~/.bashrc
+     ```
+   - Alternatively, for system-wide variables, you can place the export commands in `/etc/environment` or `/etc/profile`.
 
 ## Todo list
 
+- 2024 changes need to be reflected in this README. (I've now dumped everything in here from flare.hispattern.com)
 - More well thought out JSON cross reference data, and subjects
 - Minor Ui improvements like toggling the arrow when tapping off of the side-bar on small screens 
 - Create similar editing interface to create JSON files with the visual aid. *they are currently programmed one line at a time*.
 - Get out of the demo stage for JSON data - I've created the cross referencing in para.json and flare-OldTestamentJesus1.json on my own.
 - Convert the project using Vue Native for mobile
   - Convert to using JSON or SQLite bible databases for use in Android
-
-
-
 
 
 
@@ -177,10 +215,6 @@ Flare is based on features from these projects:
   - A D3.js v3 **Hierarchical Edge Bundling chart** from https://observablehq.com/@d3/hierarchical-edge-bundling 
 - (**REGEX**) <a href='https://github.com/nathankitchen/jquery.biblify'>jQuery Biblify</a> a very robust way to find verses on a page, and originally built to replace the text with links to pages with the scritpures using AJAX. 
 - (**Dashboard Styles and Functionality**) Flare uses a modified version of the <a href='https://github.com/stisla/stisla'>Stisla dashboard theme</a> 
-
-
-
-
 
 
 ## License

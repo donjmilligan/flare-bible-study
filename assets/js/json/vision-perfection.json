@@ -1,0 +1,56 @@
+[
+
+{"name":"vision.con.Context: Perfect-","imports":[]},
+{"name":"vision.con.Appearance","imports":["vision.con.Context: Perfect-"]},
+{"name":"vision.con.Behavior","imports":["vision.con.Context: Perfect-"]},
+{"name":"vision.con.Appearance","imports":["vision.con.Context: Perfect-"]},
+{"name":"vision.con.Charachter","imports":["vision.con.Context: Perfect-"]},
+{"name":"vision.con.Knowledge","imports":["vision.con.Context: Perfect-"]},
+{"name":"vision.con.Peace","imports":["vision.con.Context: Perfect-"]},
+
+
+{"name":"vision.sub.A lamb","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.A man","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Abraham","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Noah","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Ten Commandments","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Scriptures","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Job","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Even Jesus","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.God","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Jerusalem","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Tyre","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Lucifer","imports":["vision.sub.Subject"]},
+{"name":"vision.sub.Subject","imports":[]},
+
+
+{"name":"vision.nt.New Testament","imports":[]},
+
+
+{"name":"vision.nt.mat.Matthew 5:48","imports":["vision.nt.New Testament","vision.sub.God","vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.nt.mat.Matthew 19:21","imports":["vision.nt.New Testament","vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.nt.New Testament","imports":[]},
+
+{"name":"vision.ot.gen.Genesis 6:9","imports":["vision.sub.Noah","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.gen.Genesis 17:1","imports":["vision.sub.Abraham","vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.exo.Exodus 12:5","imports":["vision.sub.A lamb","vision.con.Appearance"]},
+{"name":"vision.ot.deu.Deuteronomy 18:13","imports":["vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.deu.Deuteronomy 32:4","imports":["vision.sub.God","vision.sub.Even Jesus","vision.con.Charachter","vision.con.Behavior"]},
+{"name":"vision.ot.2sa.2 Samuel 22:31-33","imports":["vision.sub.God","vision.sub.A man","vision.con.Charachter"]},
+{"name":"vision.ot.job.Job 1:8","imports":["vision.sub.Job","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.job.Job 8:20","imports":["vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.job.Job 9:20-21","imports":["vision.sub.Job","vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.job.Job 12:4-5","imports":["vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.job.Job 36:4","imports":["vision.sub.God","vision.sub.Even Jesus","vision.con.Knowledge"]},
+{"name":"vision.ot.job.Job 37:16","imports":["vision.sub.God","vision.sub.Even Jesus","vision.con.Knowledge"]},
+{"name":"vision.ot.psa.Psalm 18:30-31","imports":["vision.sub.God","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.psa.Psalm 19:7-8","imports":["vision.sub.Ten Commandments","vision.con.Charachter","vision.con.Behavior"]},
+{"name":"vision.ot.psa.Psalm 50:2","imports":["vision.sub.God","vision.sub.Even Jesus","vision.con.Appearance"]},
+{"name":"vision.ot.psa.Psalm 119:96","imports":["vision.con.Appearance","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.pro.Proverbs 11:5","imports":["vision.sub.Even Jesus","vision.sub.A man","vision.con.Behavior","vision.con.Charachter"]},
+{"name":"vision.ot.isa.Isaiah 26:3","imports":["vision.sub.God","vision.sub.A man","vision.con.Peace"]},
+{"name":"vision.ot.eze.Ezekiel 27:3-4","imports":["vision.sub.Tyre","vision.con.Appearance"]},
+{"name":"vision.ot.eze.Ezekiel 28:12","imports":["vision.sub.Lucifer","vision.con.Appearance"]},
+{"name":"vision.ot.Old Testament","imports":[]}
+
+]

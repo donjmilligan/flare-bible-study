@@ -1,0 +1,48 @@
+[
+{"name":"theLamb.Jesus Is","imports":["theLamb.God","theLamb.Son of God","theLamb.Lamb of God","theLamb.Word of God","theLamb.Promised One","theLamb.The Bridegroom","theLamb.Eternal King","theLamb.Priest King","theLamb.A Covenant","theLamb.Savior","theLamb.Shepherd","theLamb.Life Giver","theLamb.Provider","theLamb.Healer","theLamb.Forever faithful","theLamb.Our only Hope","theLamb.Righteousness","theLamb.The Cornerstone","theLamb.Comforter","theLamb.Tender","theLamb.Merciful","theLamb.Undefeated"]},
+{"name":"theLamb.God","imports":[]},
+{"name":"theLamb.Son of God","imports":[]},
+{"name":"theLamb.Lamb of God","imports":[]},
+{"name":"theLamb.Word of God","imports":[]},
+{"name":"theLamb.Promised One","imports":[]},
+{"name":"theLamb.The Bridegroom","imports":[]},
+{"name":"theLamb.Eternal King","imports":[]},
+{"name":"theLamb.Priest King","imports":[]},
+{"name":"theLamb.A Covenant","imports":[]},
+{"name":"theLamb.Savior","imports":[]},
+{"name":"theLamb.Shepherd","imports":[]},
+{"name":"theLamb.Life Giver","imports":[]},
+{"name":"theLamb.Provider","imports":[]},
+{"name":"theLamb.Healer","imports":[]},
+{"name":"theLamb.Forever faithful","imports":[]},
+{"name":"theLamb.Our only Hope","imports":[]},
+{"name":"theLamb.Righteousness","imports":[]},
+{"name":"theLamb.The Cornerstone","imports":[]},
+{"name":"theLamb.Comforter","imports":[]},
+{"name":"theLamb.Tender","imports":[]},
+{"name":"theLamb.Merciful","imports":[]},
+{"name":"theLamb.Undefeated","imports":[]},
+
+{"name":"rep.Church","imports":["def.Is A","wmn.Woman"]},
+
+{"name":"wmn.Daughter","imports":[]},
+{"name":"wmn.Sister","imports":[]},
+{"name":"wmn.Mother","imports":[]},
+{"name":"wmn.Wife","imports":[]},
+{"name":"wmn.Pregnant woman","imports":[]},
+{"name":"wmn.Body of people","imports":[]},
+{"name":"wmn.Woman","imports":["def.Is A","wmn.Body of people","wmn.Pregnant woman","wmn.Wife","wmn.Mother","wmn.Sister","wmn.Daughter"]},
+
+{"name":"man.Son","imports":[]},
+{"name":"man.Brother","imports":[]},
+{"name":"man.Father","imports":[]},
+{"name":"man.Single (1) person","imports":[]},
+{"name":"man.Man","imports":["def.Is A","man.Single (1) person","man.Father","man.Brother","man.Son"]},
+
+{"name":"jer.Jer 31:22","imports":["wmn.Pregnant woman"]},
+{"name":"eph.Eph 5:22 - 33.","imports":["rep.Church","wmn.Woman","wmn.Wife"]},
+
+{"name":"def.Is A","imports":[]},
+{"name":"def.Symbolically Defines","imports":[]},
+{"name":"merciful.love","imports":[]}
+]

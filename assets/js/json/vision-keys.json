@@ -1,0 +1,69 @@
+[
+
+{"name":"flare.key.Keys","imports":["flare.key.Shield","flare.key.Pillar","flare.key.Sun, Moon, Stars","flare.key.One Day","flare.key.Angel [of the Lord]","flare.key.Water","flare.key.Kingdom (empire)","flare.key.A Time","flare.key.Beast(s)","flare.key.Horn(s)","flare.key.Olive Oil","flare.key.Bread","flare.key.Sword","flare.key.The Word","flare.key.Wine"]},
+{"name":"flare.key.Shield","imports":["flare.def.God"]},
+{"name":"flare.key.Pillar","imports":["flare.def.Witness"]},
+{"name":"flare.key.Sun, Moon, Stars","imports":["flare.def.Father, Mother, Sons"]},
+{"name":"flare.key.One Day","imports":["flare.def.One Year"]},
+{"name":"flare.key.Angel [of the Lord]","imports":["flare.def.God"]},
+{"name":"flare.key.Water","imports":["flare.def.Unstability"]},
+{"name":"flare.key.Kingdom (empire)","imports":["flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman","flare.def.Papal","flare.key.Horn(s)"]},
+{"name":"flare.key.A Time","imports":["flare.def.One Year"]},
+{"name":"flare.key.Beast(s)","imports":["flare.def.Kingdom (empire)","flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman"]},
+{"name":"flare.key.Horn(s)","imports":["flare.def.King(s)","flare.def.Papal"]},
+{"name":"flare.key.Olive Oil","imports":["flare.def.The Word of God"]},
+{"name":"flare.key.Bread","imports":["flare.def.Jesus Christ"]},
+{"name":"flare.key.Sword","imports":["flare.def.The Word of God"]},
+{"name":"flare.key.The Word","imports":["flare.def.Jesus Christ"]},
+{"name":"flare.key.Wine","imports":["flare.def.Finer things of life","flare.def.Confusion"]},
+
+
+
+
+{"name":"flare.def.Definitions","imports":["flare.def.God","flare.def.Witness","flare.def.Father, Mother, Sons","flare.def.One Year","flare.def.Unstability","flare.def.Kingdom (empire)","flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman","flare.def.Papal","flare.def.King(s)","flare.def.The Word of God","flare.def.Jesus Christ","flare.def.A Lamp, a Light","flare.def.Finer things of life","flare.def.Confusion"]},
+{"name":"flare.def.God","imports":[]},
+{"name":"flare.def.Jesus Christ","imports":["flare.key.Bread","flare.key.The Word"]},
+{"name":"flare.def.Witness","imports":[]},
+{"name":"flare.def.Father, Mother, Sons","imports":[]},
+{"name":"flare.def.One Year","imports":[]},
+{"name":"flare.def.Unstability","imports":[]},
+{"name":"flare.def.Kingdom (empire)","imports":["flare.key.Beast(s)"]},
+{"name":"flare.def.Babylonian","imports":[]},
+{"name":"flare.def.Medo-Persian","imports":[]},
+{"name":"flare.def.Greek","imports":[]},
+{"name":"flare.def.Roman","imports":[]},
+{"name":"flare.def.Papal","imports":[]},
+{"name":"flare.def.King(s)","imports":[]},
+{"name":"flare.def.The Word of God","imports":[]},
+{"name":"flare.def.A Lamp, a Light","imports":[]},
+{"name":"flare.def.Finer things of life","imports":[]},
+{"name":"flare.def.Confusion","imports":[]},
+
+
+
+
+
+{"name":"flare.ot.jde.Jude 1:9","imports":["flare.key.Angel [of the Lord]","flare.def.God"]},
+{"name":"flare.ot.eph.Ephesians 6:17","imports":["flare.def.Jesus Christ","flare.def.The Word of God","flare.key.The Word","flare.key.Sword"]},
+{"name":"flare.ot.jhn.John 6:35","imports":["flare.key.The Word","flare.def.Jesus Christ"]},
+{"name":"flare.ot.jhn.John 1:1-5","imports":["flare.key.Bread","flare.def.Jesus Christ","flare.def.The Word of God","flare.def.A Lamp, a Light"]},
+{"name":"flare.ot.zec.Zechariah 4:1-14","imports":["flare.def.The Word of God","flare.def.A Lamp, a Light"]},
+{"name":"flare.ot.dan.Daniel 7:19-25","imports":["flare.ot.dan.Daniel 7:1-14","flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman","flare.def.Papal","flare.key.Horn(s)","flare.def.Kingdom (empire)"]},
+{"name":"flare.ot.dan.Daniel 7:15-18","imports":["flare.ot.dan.Daniel 7:1-14","flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman","flare.key.Beast(s)","flare.def.Kingdom (empire)"]},
+{"name":"flare.ot.dan.Daniel 7:1-14","imports":["flare.ot.dan.Daniel 2:36-40","flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman","flare.def.Papal","flare.key.Beast(s)","flare.def.Kingdom (empire)"]},
+{"name":"flare.ot.dan.Daniel 4:23-36","imports":["flare.key.A Time","flare.def.One Year"]},
+{"name":"flare.ot.dan.Daniel 2:36-40","imports":["flare.def.Kingdom (empire)","flare.def.Babylonian","flare.def.Medo-Persian","flare.def.Greek","flare.def.Roman","flare.ot.dan.Daniel 7:1-14","flare.key.Kingdom (empire)"]},
+{"name":"flare.ot.pro.Proverbs 20:1","imports":["flare.key.Wine","flare.def.Confusion"]},
+{"name":"flare.ot.psa.Psalm 104:15","imports":["flare.def.Finer things of life","flare.key.Wine"]},
+{"name":"flare.ot.psa.Psalm 119:105","imports":["flare.key.The Word","flare.def.A Lamp, a Light","flare.def.The Word of God"]},
+{"name":"flare.ot.jsh.Joshua 7:5","imports":["flare.key.Water","flare.def.Unstability"]},
+{"name":"flare.ot.jsh.Joshua 5:13-15","imports":["flare.key.Angel [of the Lord]","flare.def.God"]},
+{"name":"flare.ot.gen.Genesis 49:3-4","imports":["flare.key.Water","flare.def.Unstability"]},
+{"name":"flare.ot.gen.Genesis 48:15-16","imports":["flare.def.God","flare.key.Angel [of the Lord]"]},
+{"name":"flare.ot.gen.Genesis 37:9-11","imports":["flare.key.Sun, Moon, Stars","flare.def.Father, Mother, Sons"]},
+{"name":"flare.ot.gen.Genesis 31:43-52","imports":["flare.key.Pillar","flare.def.Witness"]},
+{"name":"flare.ot.gen.Genesis 29:18-27","imports":["flare.key.One Day","flare.def.One Year"]},
+{"name":"flare.ot.gen.Genesis 15:1","imports":["flare.def.God","flare.key.Shield"]},
+{"name":"flare.ot.Old Testament","imports":[]}
+
+]

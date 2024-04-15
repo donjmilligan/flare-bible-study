@@ -1,6 +1,14 @@
-// Very modified version of:  
-// https://github.com/danielgtaylor/bibviz/blob/master/web/contents/scripts/main.js
-// Contributor: Don Milligan
+/**
+ * Flare Bible Study
+ * 
+ * Flare is a bible study app intended for presentations
+ * Original author 
+ * @package Flare
+ * @version 2.0 Alpha 12
+ * @author  Don Milligan
+ * @url   https://freelancedon.ca;
+ *
+ */
 
 var bData = null;
 var bookToChapter = {};
@@ -89,7 +97,7 @@ function settingsDisplay(){
  *
  */
 
-d3.json('assets/json/kjv.json', function (err, json) {
+d3.json('data/kjv.json', function (err, json) {
     if (err) { console.log(err); }
     bData = json;
     var bookSelect = d3.select('#book-select');
@@ -208,7 +216,7 @@ d3.json('assets/json/kjv.json', function (err, json) {
         renderCompare();
     } else {
         // else get scripture input from file
-        d3.json('./assets/json/para.json', function (err, json) {
+        d3.json('./data/para.json', function (err, json) {
             para = json;
 
             var sourceSelect = d3.select('#source-select');
@@ -502,7 +510,7 @@ function bibleFromSQL(str) {
                 }
             };
            // console.log("string var "+str);
-            xmlhttp.open("GET","./sql/ajax.php?b="+str+"&t="+paraFilters.translation,true);
+            xmlhttp.open("GET","./database/ajax.php?b="+str+"&t="+paraFilters.translation,true);
             xmlhttp.send();
             setTimeout(function(){
                 // call niceScroll after, to continually reapply to new elements. 
@@ -855,7 +863,6 @@ function slugg(string, separator, toStrip) {
   return string;
 
 }
-
 
 // Conversion table. Modified version of:
 // https://github.com/dodo/node-slug/blob/master/src/slug.coffee

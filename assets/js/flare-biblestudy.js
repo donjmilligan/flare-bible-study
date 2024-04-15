@@ -1,7 +1,3 @@
-// Extensively modified version of
-// https://observablehq.com/@d3/hierarchical-edge-bundling
-// contributor: Don Milligan
-
 var currentsize;
 var originlSize;
 var plot;
@@ -408,7 +404,7 @@ function switchContent(id,obj){
 
 
 /*
- * there is an amazing scripture regex. This will snag a verse out of any string, even abbreviated.
+ * there is no better scripture regex. This will snag a verse out of any string, even abbreviated.
  * jquery biblify -- MIT License
  * https://github.com/nathankitchen/jquery.biblify/blob/master/jquery.biblify.js
  *
@@ -440,7 +436,7 @@ function switchContent(id,obj){
      	            }
      	        };
      	       // console.log("string var "+str);
-     	        xmlhttp.open("GET","./sql/ajax.php?b="+str,true);
+     	        xmlhttp.open("GET","./database/ajax.php?b="+str,true);
      	        xmlhttp.send();
      	    }
      	}
