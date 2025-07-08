@@ -25,6 +25,9 @@
   padding: 0 30px 30px 30px;
   min-height: calc(100vh - 70px);
   transition: 0.3s;
+  /* Remove extra bottom margin or padding */
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 .section {
@@ -35,15 +38,44 @@
   margin-top: 20px;
 }
 
-/* Sidebar Mini State */
+/* Sidebar Collapsed State - Smooth Transition */
+.main-content {
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), width 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+
 .sidebar-mini .main-content {
   margin-left: 70px;
 }
 
-.sidebar-mini .main-sidebar {
-  width: 70px;
+.main-sidebar {
+  transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* Ensure all children move with main-content */
+.main-content > * {
+  transition: inherit;
+}
+
+/* Navbar background white and moves with content */
+.navbar {
+  background: #fff !important;
+  transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
+  margin-left: 260px;
+}
+
+.sidebar-mini .navbar {
+  margin-left: 70px;
+}
+
+/* Remove float/absolute from main content buttons if any */
+.main-content button, .main-content .btn {
+  float: none !important;
+  position: static !important;
+  transition: inherit;
+}
+
+/* Sidebar Mini State */
 .sidebar-mini .sidebar-brand {
   padding: 0.5rem 0;
 }
@@ -101,5 +133,36 @@
 @media (max-width: 320px) {
   .mobile {
     width: 150% !important;
+  }
+} 
+
+#app, .main-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer {
+  margin-top: 50px;
+  margin-bottom: 0;
+  padding: 1rem 0;
+  width: 100%;
+  background: #f8f9fa;
+  text-align: center;
+  /* Remove any fixed height or min-height */
+  height: auto !important;
+  min-height: 0 !important;
+  box-sizing: border-box;
+} 
+
+.world-empires-row {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 991.98px) {
+  .world-empires-row {
+    flex-direction: column;
   }
 } 

@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import WorldEmpiresVisualization from './components/WorldEmpiresVisualization';
-import InfoPanel from './components/InfoPanel';
-import Footer from './components/Footer';
+import Navbar from './components/Navbar.tsx';
+import Sidebar from './components/Sidebar.tsx';
+import WorldEmpiresVisualization from './components/WorldEmpires/WorldEmpiresVisualization';
+import Footer from './components/Footer.tsx';
+import Signup from './components/auth/SignUp.tsx';
+import Signin from './components/auth/Signin.tsx';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
-function App() {
+function AppContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedNode, setSelectedNode] = useState(null);
   const [textSize, setTextSize] = useState(8);
   const [circleSize, setCircleSize] = useState(1);
+  const location = useLocation();
 
   useEffect(() => {
     // Auto-collapse sidebar on larger screens
@@ -37,47 +40,37 @@ function App() {
     setCircleSize(newSize);
   };
 
+  // Hide sidebar and navbar on signup and signin pages
+  const hideNav = location.pathname === '/' || location.pathname === '/registration' || location.pathname === '/signin';
+
   return (
     <div id="app">
       <div className={`main-wrapper main-wrapper-1 ${sidebarCollapsed ? 'sidebar-mini' : ''}`}>
-        <div className="navbar-bg"></div>
-        
-        <Navbar onToggleSidebar={toggleSidebar} />
-        
-        <Sidebar collapsed={sidebarCollapsed} />
-        
-        {/* Main Content */}
+        {!hideNav && <Sidebar collapsed={sidebarCollapsed} onToggle={toggleSidebar} />}
+        {!hideNav && <Navbar />}
         <div className="main-content">
-          <section className="section">
-            <div className="section-body">
-              <div className="row">
-                <div className="col-12 col-lg-9">
-                  {/* BIBLE STUDY */}
-                  <WorldEmpiresVisualization 
-                    textSize={textSize}
-                    circleSize={circleSize}
-                    onNodeClick={handleNodeClick}
-                  />
-                  {/* // BIBLE STUDY */}
-                </div>
-
-                <div className="col-12 col-lg-3 mobile">
-                  <InfoPanel 
-                    selectedNode={selectedNode}
-                    textSize={textSize}
-                    circleSize={circleSize}
-                    onTextSizeChange={handleTextSizeChange}
-                    onCircleSizeChange={handleCircleSizeChange}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
+          <Routes>
+            <Route path="/" element={<Signup />} />
+            <Route path="/WorldEmpires" element={<WorldEmpiresVisualization 
+              textSize={textSize}
+              circleSize={circleSize}
+              onNodeClick={handleNodeClick}
+            />} />
+            <Route path="/registration" element={<Signup />} />
+            <Route path="/signin" element={<Signin />} />
+          </Routes>
         </div>
-        
-        <Footer />
+        {!hideNav && <Footer />}
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   );
 }
 

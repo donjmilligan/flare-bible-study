@@ -1,6 +1,7 @@
 /* Info Panel Styles */
 .info-section-v1 {
-  height: 85vh;
+  /* height: 85vh; */
+  max-height: 85vh;
   overflow-y: auto;
 }
 
@@ -326,5 +327,11 @@ button#minus {
   
   #showTexts {
     padding: 0 20px 0 0;
+  }
+} 
+
+@media (max-width: 991.98px) {
+  .info-section-v1 {
+    max-height: 70vh;
   }
 } 
