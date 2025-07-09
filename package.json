@@ -1,0 +1,39 @@
+{
+  "name": "flare-bible-study-react",
+  "version": "1.0.0",
+  "description": "React-based World Empires in Prophecy visualization",
+  "main": "index.js",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.0",
+    "bootstrap": "^5.3.0",
+    "d3": "^3.5.17",
+    "fs": "^0.0.1-security",
+    "jquery": "^3.7.0",
+    "material-design-icons-iconfont": "^6.7.0",
+    "moment": "^2.29.4",
+    "pg": "^8.16.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.6.3",
+    "react-scripts": "5.0.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

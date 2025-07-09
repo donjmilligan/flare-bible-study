@@ -78,7 +78,7 @@
                     </div>
                     <div id="bible-chart" class="card-body d-flex justify-content-center position-relative">
 
-                        <svg id="paradoxes-chart" ></svg>
+                        <!-- <svg id="paradoxes-chart" ></svg> -->
 
                          <div id="filter-notice" style="opacity: 0; display: none;">
                              <i class="icon-hand-left"></i> Check out these filters to modify the chart!
