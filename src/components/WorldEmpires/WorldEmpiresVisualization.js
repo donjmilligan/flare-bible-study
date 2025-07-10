@@ -22,6 +22,8 @@ const WorldEmpiresVisualization = ({ textSize, circleSize, onNodeClick }) => {
   const [diagramId, setDiagramId] = useState('world-empires-v1');
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
+  // State for inline editing
+  const [inlineEdit, setInlineEdit] = useState({ node: null, value: '', x: 0, y: 0 });
 
   // Initialize size on component mount
   useEffect(() => {
@@ -131,42 +133,84 @@ const WorldEmpiresVisualization = ({ textSize, circleSize, onNodeClick }) => {
     }
   };
 
-  const saveNodeEdit = () => {
-    if (editingNode && newNodeData.name) {
-      const updatedSource = source.map(node => 
-        node.name === editingNode.name 
-          ? { ...node, name: newNodeData.name, imports: newNodeData.imports }
-          : node
-      );
-      setSource(updatedSource);
-      setEditingNode(null);
-      setNewNodeData({ name: '', imports: [] });
-      plotHierarchicalEdgeBundling(updatedSource);
-      // Auto-save after editing
-      saveDiagram(updatedSource);
-    }
-  };
-
-  const addNewNode = () => {
+  // Add node (API)
+  const addNewNode = async () => {
     if (newNodeData.name) {
-      const newSource = [...source, { name: newNodeData.name, imports: newNodeData.imports }];
-      setSource(newSource);
-      setShowAddNodeForm(false);
-      setNewNodeData({ name: '', imports: [] });
-      plotHierarchicalEdgeBundling(newSource);
-      // Auto-save after adding
-      saveDiagram(newSource);
+      try {
+        const response = await fetch('http://localhost:3000/empires-nodes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: newNodeData.name,
+            size: 1,
+            imports: newNodeData.imports
+          })
+        });
+        if (!response.ok) throw new Error('Failed to add node');
+        const createdNode = await response.json();
+        const newSource = [...source, createdNode];
+        setSource(newSource);
+        setShowAddNodeForm(false);
+        setNewNodeData({ name: '', imports: [] });
+        plotHierarchicalEdgeBundling(newSource);
+        setSaveStatus('Node added!');
+        setTimeout(() => setSaveStatus(''), 2000);
+      } catch (error) {
+        setSaveStatus('Add failed: ' + error.message);
+        setTimeout(() => setSaveStatus(''), 3000);
+      }
     }
   };
 
-  const deleteNode = (nodeName) => {
+  // Edit node (API)
+  const saveNodeEdit = async () => {
+    if (editingNode && newNodeData.name) {
+      try {
+        const response = await fetch(`http://localhost:3000/empires-nodes/${encodeURIComponent(editingNode.name)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            newName: newNodeData.name,
+            size: editingNode.size || 1,
+            imports: newNodeData.imports
+          })
+        });
+        if (!response.ok) throw new Error('Failed to update node');
+        const updatedNode = await response.json();
+        const updatedSource = source.map(node =>
+          node.name === editingNode.name ? updatedNode : node
+        );
+        setSource(updatedSource);
+        setEditingNode(null);
+        setNewNodeData({ name: '', imports: [] });
+        plotHierarchicalEdgeBundling(updatedSource);
+        setSaveStatus('Node updated!');
+        setTimeout(() => setSaveStatus(''), 2000);
+      } catch (error) {
+        setSaveStatus('Update failed: ' + error.message);
+        setTimeout(() => setSaveStatus(''), 3000);
+      }
+    }
+  };
+
+  // Delete node (API)
+  const deleteNode = async (nodeName) => {
     if (window.confirm(`Are you sure you want to delete "${nodeName}"?`)) {
-      const updatedSource = source.filter(node => node.name !== nodeName);
-      setSource(updatedSource);
-      setSelectedNode(null);
-      plotHierarchicalEdgeBundling(updatedSource);
-      // Auto-save after deletion
-      saveDiagram(updatedSource);
+      try {
+        const response = await fetch(`http://localhost:3000/empires-nodes/${encodeURIComponent(nodeName)}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) throw new Error('Failed to delete node');
+        const updatedSource = source.filter(node => node.name !== nodeName);
+        setSource(updatedSource);
+        setSelectedNode(null);
+        plotHierarchicalEdgeBundling(updatedSource);
+        setSaveStatus('Node deleted!');
+        setTimeout(() => setSaveStatus(''), 2000);
+      } catch (error) {
+        setSaveStatus('Delete failed: ' + error.message);
+        setTimeout(() => setSaveStatus(''), 3000);
+      }
     }
   };
 
@@ -222,6 +266,59 @@ const WorldEmpiresVisualization = ({ textSize, circleSize, onNodeClick }) => {
     }
   };
 
+  // Helper to handle inline rename submit
+  const handleInlineRename = async (e) => {
+    e.preventDefault();
+    if (!inlineEdit.node) return;
+    try {
+      const response = await fetch(`http://localhost:3000/empires-nodes/${encodeURIComponent(inlineEdit.node.name)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newName: inlineEdit.value,
+          size: inlineEdit.node.size || 1,
+          imports: inlineEdit.node.imports || []
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update node');
+      const updatedNode = await response.json();
+      const updatedSource = source.map(node =>
+        node.name === inlineEdit.node.name ? updatedNode : node
+      );
+      setSource(updatedSource);
+      plotHierarchicalEdgeBundling(updatedSource);
+      setInlineEdit({ node: null, value: '', x: 0, y: 0 });
+      setSaveStatus('Node renamed!');
+      setTimeout(() => setSaveStatus(''), 2000);
+    } catch (error) {
+      setSaveStatus('Rename failed: ' + error.message);
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  };
+
+  // Helper to update node position in backend
+  const updateNodePosition = async (node, newX, newY) => {
+    try {
+      const response = await fetch(`http://localhost:3000/empires-nodes/${encodeURIComponent(node.name)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          newName: node.name,
+          size: node.size || 1,
+          imports: node.imports || [],
+          x: newX,
+          y: newY
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update node position');
+      setSaveStatus('Node position updated!');
+      setTimeout(() => setSaveStatus(''), 2000);
+    } catch (error) {
+      setSaveStatus('Position update failed: ' + error.message);
+      setTimeout(() => setSaveStatus(''), 3000);
+    }
+  };
+
   // HierarchicalEdgeBundling class (converted from original JavaScript)
   const HierarchicalEdgeBundling = (chartElementId, infoElementId, classes) => {
     const diameter = currentSize;
@@ -273,15 +370,53 @@ const WorldEmpiresVisualization = ({ textSize, circleSize, onNodeClick }) => {
       .enter().append("text")
       .attr("class", "node")
       .attr("dy", ".31em")
-      .attr("transform", function(d) { 
-        return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); 
+      .attr("transform", function(d) {
+        // Use d.x and d.y if present, else fallback to radial
+        if (typeof d.x_drag === 'number' && typeof d.y_drag === 'number') {
+          return `translate(${d.x_drag},${d.y_drag})`;
+        }
+        return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 8) + ",0)" + (d.x < 180 ? "" : "rotate(180)");
       })
       .style("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
       .text(function(d) { return d.key; })
       .on("mouseover", mouseovered)
       .on("mouseout", mouseouted)
       .on("click", clicked)
-      .style("cursor", isEditMode ? "pointer" : "default");
+      .style("cursor", isEditMode ? "pointer" : "default")
+      .on("dblclick", function(event, d) {
+        // Get SVG position and convert to screen coordinates
+        const svg = document.querySelector('#' + chartElementId + ' svg');
+        const pt = svg.createSVGPoint();
+        const matrix = svg.getScreenCTM();
+        // Get the node's transform
+        const transform = d3.select(this).attr('transform');
+        // Parse the translate from the transform string
+        let x = 0, y = 0;
+        const match = /translate\\(([^,]+),([^\\)]+)\\)/.exec(transform);
+        if (match) {
+          x = parseFloat(match[1]);
+          y = parseFloat(match[2]);
+        }
+        pt.x = x;
+        pt.y = y;
+        const screenPos = pt.matrixTransform(matrix);
+        setInlineEdit({ node: d, value: d.key, x: screenPos.x, y: screenPos.y });
+      })
+      .call(
+        d3.behavior.drag()
+          .on('drag', function(d) {
+            // Update position in data
+            d.x_drag = d3.event.x;
+            d.y_drag = d3.event.y;
+            d3.select(this).attr('transform', `translate(${d.x_drag},${d.y_drag})`);
+            // Optionally, update links here for live feedback
+          })
+          .on('dragend', function(d) {
+            // Save new position to backend
+            updateNodePosition(d, d.x_drag, d.y_drag);
+            // Optionally, re-render links here
+          })
+      );
 
     // Set height for the container
     d3.select("#" + chartElementId).style("height", diameter + "px");
@@ -366,7 +501,33 @@ const WorldEmpiresVisualization = ({ textSize, circleSize, onNodeClick }) => {
   };
 
   return (
-    <div className="row world-empires-row">
+    <div className="row world-empires-row" style={{ position: 'relative' }}>
+      {/* Inline edit input overlay */}
+      {inlineEdit.node && (
+        <form
+          onSubmit={handleInlineRename}
+          style={{
+            position: 'fixed',
+            left: inlineEdit.x,
+            top: inlineEdit.y,
+            zIndex: 2000,
+            background: 'white',
+            border: '1px solid #ccc',
+            borderRadius: 4,
+            padding: 2,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+          }}
+        >
+          <input
+            type="text"
+            value={inlineEdit.value}
+            autoFocus
+            onChange={e => setInlineEdit({ ...inlineEdit, value: e.target.value })}
+            onBlur={() => setInlineEdit({ node: null, value: '', x: 0, y: 0 })}
+            style={{ fontSize: 16, width: 120 }}
+          />
+        </form>
+      )}
       <div className="col-12 col-lg-9 position-relative">
         {/* Visualization */}
         <div id="chtHierarchicalEdgeBundling" className="heb">

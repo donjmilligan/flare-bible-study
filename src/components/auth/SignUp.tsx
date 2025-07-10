@@ -57,8 +57,8 @@ const Signup = () => {
 
   return (
     <div className="signup-container">
-      <h1 className='signup-title'>Bible Study Registration Form</h1>
-      <p className='signup-description'>Please fill out the form below to register for our Bible study sessions</p>
+      <h1 className='signup-title'>Flare Bible Study Registration Form</h1>
+      <p className='signup-description'>Please fill out the form below to register</p>
       
       <form onSubmit={handleSubmit}>
         <div className="form-section">
@@ -113,7 +113,7 @@ const Signup = () => {
 
         <div className="form-footer">
           <button type="submit" className="submit-btn">
-            Submit
+            Sign Up
           </button>
           <div className="already-registered">
             Already registered? <a href="/signin">Sign in</a>

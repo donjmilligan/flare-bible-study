@@ -2,10 +2,11 @@
   max-width: 500px;
   margin: 50px auto;
   gap: 10px;
-  padding: 10px;
+  padding: 20px;
   font-family: Arial, sans-serif;
   color: #333;
   border: 1px solid #e4dede;
+  background: #fff;
 }
 .signup-title{
   text-align: center;
@@ -26,15 +27,13 @@
 }
 
 .form-section {
-  margin-bottom: 6px;
+  font-size: 14px;
 }
 
 .form-section h2 {
   color: #2c3e50;
   font-size: 16px;
-  margin-bottom: 5px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 5px;
+  margin-left: 20px;
 }
 
 .name-fields {
@@ -51,8 +50,7 @@ input, textarea {
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
-  margin-bottom: 5px;
+  font-size: 12px;
 }
 
 input:focus, textarea:focus {
@@ -96,11 +94,11 @@ textarea {
   background-color: #4CAF50;
   color: white;
   border: none;
-  padding: 12px 30px;
-  font-size: 16px;
-  border-radius: 4px;
+  padding: 5px 6px;
+  font-size: 12px;
+  width: 70px;
+  border-radius: 5px;
   cursor: pointer;
-  min-width: 150px;
   transition: background-color 0.3s;
   box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
@@ -117,7 +115,7 @@ textarea {
 
 .already-registered {
   color: #666;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .already-registered a {

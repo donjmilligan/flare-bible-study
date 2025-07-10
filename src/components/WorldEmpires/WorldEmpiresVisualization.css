@@ -48,7 +48,7 @@ div#chtHierarchicalEdgeBundling.heb {
   fill: #2aa3b1;
   cursor: default;
   text-shadow: 0 0 3px rgba(255, 255, 255, 1);
-  background-color: #FFF;
+  background: #FFF;
   transition: fill 0.4s ease-in-out, text-shadow 0.4s ease-in-out;
 }
 
@@ -74,7 +74,7 @@ div#chtHierarchicalEdgeBundling.heb {
 
 .heb .node--source {
   fill: #555;
-  background-color: #FFF;
+  background: #FFF;
 }
 
 .node--source {

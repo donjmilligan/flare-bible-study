@@ -3,11 +3,12 @@
   min-height: 100vh;
   position: relative;
   top: 0;
-  height: 100vh;
+  height: auto;
 }
 
 .main-wrapper-1 {
   background-color: #f4f6f9;
+  min-height: 100vh;
 }
 
 .navbar-bg {
@@ -27,7 +28,7 @@
   transition: 0.3s;
   /* Remove extra bottom margin or padding */
   margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+  padding-bottom: 30px !important;
 }
 
 .section {
@@ -118,51 +119,60 @@
   display: block;
 }
 
-/* Mobile Responsive */
-@media (max-width: 991.98px) {
+/* Fix for auth pages (signup/signin) */
+body {
+ 
+  height: auto !important;
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+html {
+  overflow: auto !important;
+  height: auto !important;
+}
+
+/* Ensure auth pages have proper background */
+#app {
+  min-height: 100vh;
+  background: #f4f6f9;
+}
+
+/* Fix for World Empires visualization */
+.world-empires-row {
+  min-height: calc(100vh - 140px);
+  background: #f4f6f9;
+}
+
+::-webkit-scrollbar {
+  width: 6px;         /* vertical scrollbar width */
+  height: 6px;        /* horizontal scrollbar height */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cccccc;   /* color of the scroll thumb */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f4f6f9;   /* color of the track */
+}
+/* Ensure proper scrolling on all pages */
+
+/* Fix footer positioning */
+.main-footer {
+  background: #f4f6f9;
+  margin-top: auto;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
   .main-content {
-    margin-left: 0;
-    padding: 0 15px 30px 15px;
+    margin-left: 0 !important;
+    padding: 15px;
   }
   
-  .mobile {
-    width: 100% !important;
-  }
-}
-
-@media (max-width: 320px) {
-  .mobile {
-    width: 150% !important;
-  }
-} 
-
-#app, .main-wrapper {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.footer {
-  margin-top: 50px;
-  margin-bottom: 0;
-  padding: 1rem 0;
-  width: 100%;
-  background: #f8f9fa;
-  text-align: center;
-  /* Remove any fixed height or min-height */
-  height: auto !important;
-  min-height: 0 !important;
-  box-sizing: border-box;
-} 
-
-.world-empires-row {
-  align-items: stretch;
-  display: flex;
-  flex-wrap: wrap;
-}
-
-@media (max-width: 991.98px) {
-  .world-empires-row {
-    flex-direction: column;
+  .navbar {
+    margin-left: 0 !important;
   }
 } 
