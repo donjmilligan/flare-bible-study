@@ -11,10 +11,10 @@ const client = new Client({
 
 async function importData() {
   await client.connect();
-  const data = JSON.parse(fs.readFileSync('public/data/studies/flare-OldTestamentJesus1.json', 'utf8'));
+  const data = JSON.parse(fs.readFileSync('public/data/studies/flare-OldTestamentJesus2.json', 'utf8'));
   for (const node of data) {
     await client.query(
-      'INSERT INTO oldtestamentsjesus1 (name, imports) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING',
+      'INSERT INTO oldtestamentsjesus2 (name, imports) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING',
       [node.name, JSON.stringify(node.imports)]
     );
   }

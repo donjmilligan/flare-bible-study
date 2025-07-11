@@ -36,12 +36,12 @@ const Sidebar = ({ collapsed, onToggle }) => {
           </li>
           <li className="menu-header">Version 1.0 Subject Maps</li>
           <li className="nav-item dropdown">
-            <a href="#" className="nav-link has-dropdown">
+            <a href="oldtestamentsjesus2" className="nav-link has-dropdown">
               <i className="fas fa-cross"></i> <span>Jesus</span>
             </a>
           </li>
           <li className="nav-item dropdown">
-            <a href="#" className="nav-link has-dropdown">
+            <a href="oldtestamentsjesus2" className="nav-link has-dropdown">
               <i className="fas fa-heart"></i> <span>Promises</span>
             </a>
           </li>
