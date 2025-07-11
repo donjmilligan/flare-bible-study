@@ -7,6 +7,7 @@ import Footer from './components/Footer.tsx';
 import Signup from './components/auth/SignUp.tsx';
 import Signin from './components/auth/Signin.tsx';
 import OldTestamentsJesus2 from './components/oldtestamentsjesus2/OldTestamentsJesus2.tsx';
+import OldTestamentsJesus1 from './components/oldtestamentjesus1/OldTestamentsJesus1.tsx';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 
 function AppContent() {
@@ -53,6 +54,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Signup />} />
             <Route path="/oldtestamentsjesus2" element={<OldTestamentsJesus2 />} />
+            <Route path="/oldtestamentjesus1" element={<OldTestamentsJesus1 />} />
             <Route path="/WorldEmpires" element={<WorldEmpiresVisualization 
               textSize={textSize}
               circleSize={circleSize}

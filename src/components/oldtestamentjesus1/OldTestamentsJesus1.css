@@ -1,0 +1,434 @@
+/* World Empires Visualization Styles */
+div#chtHierarchicalEdgeBundling.heb {
+    position: relative;
+  }
+  
+  .bibleStudy {
+    margin-bottom: 3em;
+    content: "";
+    font-size: 8px;
+  }
+  
+  .heb {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  .heb svg {
+    display: block;
+    position: relative;
+    padding-top: 2em;
+    overflow: visible;
+    margin: 0 auto;
+    z-index: 99;
+    transition: all 0.4s ease;
+  }
+  
+  .heb svg > g {
+    top: 0;
+    margin: 0 auto;
+  }
+  
+  /* TEXT */
+  .heb .node, text.node {
+    font: 'Ubuntu', Arial;
+    text-size-adjust: 0%;
+    font-weight: 500;
+    fill: #777;
+    text-shadow: 0 0 2px rgba(255, 255, 255, 0);
+    background: #FFF;
+    cursor: pointer;
+  }
+  
+  .heb .node:hover, .node:focus, text.node.active, text.node.hovered {
+    fill: #2aa3b1;
+    cursor: default;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 1);
+    background: #FFF;
+    transition: fill 0.4s ease-in-out, text-shadow 0.4s ease-in-out;
+  }
+  
+  .node-hover {
+    color: #afb50e;
+  }
+  
+  .heb .link {
+    stroke: #6e4b91;
+    stroke-opacity: 0;
+    stroke-width: 1px;
+    fill: none;
+    pointer-events: none;
+    z-index: 2;
+    transition: all 0.5s ease-in-out;
+  }
+  
+  .heb .node:hover, text.node.active, .heb .node--source, .heb .node--target {
+    font: 'Montserrat', Arial;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  
+  .heb .node--source {
+    fill: #555;
+    background: #FFF;
+  }
+  
+  .node--source {
+    color: #af4d5f;
+  }
+  
+  .heb .node--target {
+    fill: #6e4b91;
+    background-color: #FFF;
+  }
+  
+  .node--target {
+    color: #6e4b91;
+  }
+  
+  .heb .node--target.node--source {
+    fill: #F00;
+  }
+  
+  .node--target.node--source {
+    color: #F00;
+  }
+  
+  text.node {
+    background-color: #FFF;
+    background: #FFF;
+  }
+  
+  /* Paths */
+  .heb .link {
+    z-index: 2;
+    stroke: #563d7c;
+    stroke-opacity: 0;
+    stroke-width: 3px;
+    fill: none;
+    pointer-events: none;
+    transition: all 0.5s ease-in-out;
+  }
+  
+  .heb .link--source, .heb .link--target {
+    stroke-opacity: 1;
+    transition: all 0.4s ease-in-out;
+  }
+  
+  .heb .link--source {
+    stroke: #34e297;
+    stroke-width: 3px;
+  }
+  
+  .link--source {
+    color: #e6e3d4;
+  }
+  
+  .heb .link--target {
+    stroke: #34a2e2;
+    stroke-width: 2px;
+  }
+  
+  .link--target {
+    color: #777;
+  }
+  
+  /* TRANSITIONS */
+  .heb .node {
+    transition: font 0.2s ease-in-out, fill 1s ease-out, text-shadow 1s ease-out;
+  }
+  
+  .heb .node:hover {
+    transition: font 0.2s ease-in-out, fill 0.1s ease-in-out, text-shadow 0.12s ease-in-out;
+  }
+  
+  /* Colors */
+  .link--source.link--target, .link--target.link--source {
+    stroke: #ff0000;
+  }
+  
+  .heb .node--target.node--source {
+    fill: #F00;
+  }
+  
+  .node--target.node--source {
+    color: #F00;
+  }
+  
+  .unselected {
+    color: #c9ab76;
+  }
+  
+  .selected {
+    color: #55adc6;
+  }
+  
+  .satintext {
+    color: #e6e3d4;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .heb svg {
+      padding-top: 1em;
+    }
+    
+    .heb .node, text.node {
+      font-size: 6px;
+    }
+    
+    .heb .node:hover, text.node.active, .heb .node--source, .heb .node--target {
+      font-size: 14px;
+    }
+  }
+  
+  /* Editing Interface Styles */
+  .visualization-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .edit-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .edit-controls .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .edit-controls .btn-primary {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  .edit-controls .btn-primary:hover {
+    background-color: #0056b3;
+  }
+  
+  .edit-controls .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+  
+  .edit-controls .btn-danger:hover {
+    background-color: #c82333;
+  }
+  
+  .edit-controls .btn-success {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .edit-controls .btn-success:hover {
+    background-color: #218838;
+  }
+  
+  .edit-controls .btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .edit-controls .btn-warning:hover {
+    background-color: #e0a800;
+  }
+  
+  .save-controls {
+    display: flex;
+    gap: 10px;
+    margin-left: 20px;
+  }
+  
+  .save-controls .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .save-controls .btn-info {
+    background-color: #17a2b8;
+    color: white;
+  }
+  
+  .save-controls .btn-info:hover {
+    background-color: #138496;
+  }
+  
+  .save-controls .btn-info:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+  }
+  
+  .save-controls .btn-outline-secondary {
+    background-color: transparent;
+    color: #6c757d;
+    border: 1px solid #6c757d;
+  }
+  
+  .save-controls .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .save-status {
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1002;
+    animation: fadeInOut 3s ease-in-out;
+  }
+  
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(-10px); }
+    10% { opacity: 1; transform: translateY(0); }
+    90% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+  }
+  
+  .add-node-form,
+  .edit-node-form {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    min-width: 300px;
+    max-width: 500px;
+  }
+  
+  .add-node-form h4,
+  .edit-node-form h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 18px;
+  }
+  
+  .add-node-form input,
+  .edit-node-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  .add-node-form input:focus,
+  .edit-node-form input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+  }
+  
+  .form-buttons .btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  
+  .form-buttons .btn-success {
+    background-color: #28a745;
+    color: white;
+  }
+  
+  .form-buttons .btn-success:hover {
+    background-color: #218838;
+  }
+  
+  .form-buttons .btn-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+  
+  .form-buttons .btn-secondary:hover {
+    background-color: #545b62;
+  }
+  
+  /* Edit mode visual indicators */
+  .edit-mode .heb .node {
+    cursor: pointer;
+  }
+  
+  .edit-mode .heb .node:hover {
+    fill: #ffc107 !important;
+    text-shadow: 0 0 5px rgba(255, 193, 7, 0.5) !important;
+  } 
+  
+  /* Ensure the floating edit button is always visible */
+  .edit-controls-float {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  background: none;
+  box-shadow: none;
+  border-radius: 50%;
+  pointer-events: auto;
+  }
+  
+  .edit-controls-float .btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  background-color: #28a745;
+  color: white;
+  border: none;
+  z-index: 2001;
+  }
+  
+  .edit-controls-float .btn .mdi {
+  color: white;
+  }
+  
+  /* Make sure the D3 container does not cover the button */
+  .heb {
+  pointer-events: auto;
+  } 

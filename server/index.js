@@ -4,6 +4,7 @@ import pool from './db.js';
 import bibleRouter from './routes/bible.js';
 import authRouter from './routes/auth.js';
 import oldTestamentJesusRouter from './routes/oldTestamentJesus.js';
+import oldTestamentJesus1Router from './routes/oldTestamentJesus1.js';
 import empiresNodesRouter from './routes/empiresNodes.js';
 import cors from 'cors';
 
@@ -28,6 +29,7 @@ app.use('/bible', bibleRouter);
 app.use('/empires-nodes', empiresNodesRouter);
 app.use('/auth', authRouter);
 app.use('/api/oldtestamentsjesus2', oldTestamentJesusRouter);
+app.use('/api/oldtestamentsjesus1', oldTestamentJesus1Router);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 }); 

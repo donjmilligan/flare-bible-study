@@ -150,3 +150,43 @@
 .sidebar-menu li {
   list-style: none;
 }
+
+.jesus-menu-parent {
+  position: relative;
+}
+.jesus-menu-parent .jesus-submenu {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  min-width: 180px;
+  z-index: 2000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;
+  margin: 0 0 0 4px;
+  list-style: none;
+}
+.jesus-menu-parent:hover .jesus-submenu,
+.jesus-menu-parent:focus-within .jesus-submenu {
+  display: block;
+}
+.jesus-submenu li {
+  padding: 0;
+}
+.jesus-submenu .nav-link {
+  display: block;
+  padding: 10px 16px;
+  color: #333;
+  text-decoration: none;
+}
+.jesus-submenu .nav-link:hover {
+  background: #f5f5f5;
+  color: #007bff;
+}
+
+/* Prevent parent overflow from hiding submenu */
+.main-sidebar, .sidebar-menu, .sidebar-menu li {
+  overflow: visible !important;
+}
