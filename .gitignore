@@ -1,0 +1,82 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Node modules (if any JS tooling is used)
+node_modules/
+
+# Composer dependencies
+/vendor/
+composer.lock
+
+# PHPStorm and other JetBrains IDEs
+.idea/
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env
+.env.*
+
+# Cache and temp files
+.cache/
+*.cache
+*.tmp
+*.temp
+/tmp/
+
+# Build output
+/dist/
+/build/
+
+# SASS/SCSS cache
+.sass-cache/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# PHPUnit
+phpunit.xml
+phpunit.xml.dist
+
+# Database dumps
+*.sql
+dump.sql
+
+# Mac system files
+.AppleDouble
+.LSOverride
+
+# Windows system files
+$RECYCLE.BIN/
+
+# npm debug log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Other common ignores
+*.swp
+*.swo
+*.bak
+*.orig
+*.old
+
+# Image optimization cache
+*.png-compressed
+*.jpg-compressed
+
+# Custom: ignore backup and temp files
+*~
+*.bak
+*.tmp
+
+# Ignore minified map files
+*.map 
