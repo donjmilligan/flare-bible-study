@@ -1,18 +1,19 @@
-import React, { useState } from 'react';
-import './Sidebar.css';
+import React, { useState } from "react";
+import "./Sidebar.css";
+import { NavLink } from "react-router-dom";
 
 const Sidebar = ({ collapsed }) => {
   const [expandedItems, setExpandedItems] = useState({});
 
   const toggleExpanded = (itemName) => {
-    setExpandedItems(prev => ({
+    setExpandedItems((prev) => ({
       ...prev,
-      [itemName]: !prev[itemName]
+      [itemName]: !prev[itemName],
     }));
   };
 
   return (
-    <div className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         {collapsed ? (
           <div className="flare-icon">🔥</div>
@@ -23,12 +24,17 @@ const Sidebar = ({ collapsed }) => {
       <nav className="sidebar-nav">
         <ul>
           <li>
-            <div className="nav-item-header" onClick={() => toggleExpanded('dashboard')}>
+            <div
+              className="nav-item-header"
+              onClick={() => toggleExpanded("dashboard")}
+            >
               <a href="/dashboard" className="nav-link">
                 <span className="nav-icon">📊</span>
                 <span className="nav-text">Dashboard</span>
               </a>
-              <span className={`caret ${expandedItems.dashboard ? 'expanded' : ''}`}>
+              <span
+                className={`caret ${expandedItems.dashboard ? "expanded" : ""}`}
+              >
                 ▼
               </span>
             </div>
@@ -56,19 +62,24 @@ const Sidebar = ({ collapsed }) => {
             )}
           </li>
           <li>
-            <div className="nav-item-header" onClick={() => toggleExpanded('bible')}>
+            <div
+              className="nav-item-header"
+              onClick={() => toggleExpanded("bible")}
+            >
               <a href="/bible" className="nav-link">
                 <span className="nav-icon">📖</span>
                 <span className="nav-text">Bible Study</span>
               </a>
-              <span className={`caret ${expandedItems.bible ? 'expanded' : ''}`}>
+              <span
+                className={`caret ${expandedItems.bible ? "expanded" : ""}`}
+              >
                 ▼
               </span>
             </div>
             {expandedItems.bible && (
               <ul className="sub-menu">
                 <li>
-                  <a href="/bible/old-testament" className="sub-nav-link">
+                  <a href="/oldtestamentjesus1" className="sub-nav-link">
                     <span className="sub-nav-icon">📜</span>
                     <span className="sub-nav-text">Old Testament</span>
                   </a>
@@ -84,6 +95,17 @@ const Sidebar = ({ collapsed }) => {
                     <span className="sub-nav-icon">🎯</span>
                     <span className="sub-nav-text">Daily Verses</span>
                   </a>
+                </li>
+                <li>
+                  <NavLink
+                    to="/oldtestamentjesus1"
+                    className={({ isActive }) =>
+                      "sub-nav-link" + (isActive ? " active" : "")
+                    }
+                  >
+                    <span className="sub-nav-icon">✨</span>
+                    <span className="sub-nav-text">Old Testament Jesus 1</span>
+                  </NavLink>
                 </li>
               </ul>
             )}
