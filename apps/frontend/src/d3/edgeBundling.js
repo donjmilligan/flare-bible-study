@@ -108,33 +108,67 @@ export function renderEdgeBundling({
   // --- Interactivity: highlight links/nodes on hover ---
   nodeElems
     .on("mouseover", function (event, d) {
-      // Highlight links where this node is the source or target
-      linkElems
-        .attr("stroke", (l) =>
-          l.source === d || l.target === d ? "#e74c3c" : "#7db7e8",
-        )
-        .attr("opacity", (l) => (l.source === d || l.target === d ? 1 : 0.15))
-        .attr("stroke-width", (l) =>
-          l.source === d || l.target === d ? 2.5 : 1.2,
-        );
+      // Remove all highlight classes first
       nodeElems
-        .attr("fill", (n) => {
-          if (n === d) return "#e74c3c";
-          // Highlight target nodes of imports (cross-references)
-          const isTarget = links.some(
-            (l) => (l.source === d || l.target === d) && l.target === n,
-          );
-          return isTarget ? "#3498db" : "#222";
-        })
-        .attr("font-weight", (n) => (n === d ? "bold" : "normal"));
+        .classed("node--source", false)
+        .classed("node--target", false)
+        .classed("node--active", false);
+      linkElems.classed("link--source", false).classed("link--target", false);
+
+      // Mark links and nodes for cross-references
+      linkElems.each(function (l) {
+        if (l.source === d) d3.select(this).classed("link--source", true);
+        if (l.target === d) d3.select(this).classed("link--target", true);
+      });
+      nodeElems.each(function (n) {
+        // If n is a target of any link where d is source
+        if (links.some((l) => l.source === d && l.target === n)) {
+          d3.select(this).classed("node--target", true);
+        }
+        // If n is a source of any link where d is target
+        if (links.some((l) => l.target === d && l.source === n)) {
+          d3.select(this).classed("node--source", true);
+        }
+      });
+      d3.select(this).classed("node--active", true);
     })
     .on("mouseout", function () {
-      linkElems
-        .attr("stroke", "#7db7e8")
-        .attr("opacity", 0.3)
-        .attr("stroke-width", 1.2);
-      nodeElems.attr("fill", "#2d3a4a").attr("font-weight", "normal");
+      nodeElems
+        .classed("node--source", false)
+        .classed("node--target", false)
+        .classed("node--active", false);
+      linkElems.classed("link--source", false).classed("link--target", false);
     });
+
+  // --- Drag-and-drop for nodes ---
+  function dragstarted(event, d) {
+    d3.select(this).raise().attr("font-weight", "bold");
+  }
+  function dragged(event, d) {
+    // Calculate new angle and radius from drag position
+    const [cx, cy] = [width / 2, height / 2];
+    const [mx, my] = d3.pointer(event, svg.node());
+    const dx = mx - cx;
+    const dy = my - cy;
+    let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+    if (angle < 0) angle += 360;
+    const radius = Math.sqrt(dx * dx + dy * dy);
+    d.x = angle;
+    d.y = Math.max(40, Math.min(radius, RADIUS)); // Clamp radius
+    // Update node position
+    d3.select(this).attr(
+      "transform",
+      `rotate(${d.x - 90})translate(${Math.max(0, d.y - 20)},0)${d.x < 180 ? "" : "rotate(180)"}`,
+    );
+    // Update links
+    linkElems.attr("d", linkPath);
+  }
+  function dragended(event, d) {
+    d3.select(this).attr("font-weight", "normal");
+  }
+  nodeElems.call(
+    d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended),
+  );
 
   // Center the visualization
   svg.attr("viewBox", [0, 0, width, height]);

@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "./components/Layout/Layout";
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
-import OldTestamentJesus1 from "./components/oldtestamentjesus1/OldTestamentJesus1";
+import OldTestamentJesus1 from "./pages/OldTestamentJesus1";
 
 function DashboardContent() {
   return (
