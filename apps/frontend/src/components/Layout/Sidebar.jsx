@@ -1,140 +1,200 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { FaScroll, FaCross, FaHeart, FaClock, FaLeaf } from "react-icons/fa";
 import "./Sidebar.css";
-import { NavLink } from "react-router-dom";
 
-const Sidebar = ({ collapsed }) => {
-  const [expandedItems, setExpandedItems] = useState({});
+const ChevronIcon = ({ expanded }) => (
+  <svg
+    width="18"
+    height="18"
+    fill="none"
+    stroke={expanded ? "#6366f1" : "#b0b7c3"}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{
+      transform: expanded ? "rotate(90deg)" : "rotate(0deg)",
+      transition: "transform 0.2s",
+    }}
+    viewBox="0 0 24 24"
+  >
+    <polyline points="9 18 15 12 9 6" />
+  </svg>
+);
+const MenuIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    fill="none"
+    stroke="#8a94a6"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    viewBox="0 0 24 24"
+  >
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
 
-  const toggleExpanded = (itemName) => {
-    setExpandedItems((prev) => ({
-      ...prev,
-      [itemName]: !prev[itemName],
-    }));
-  };
+const navSections = [
+  {
+    key: "flare",
+    label: "Flare",
+    icon: <FaScroll />,
+    section: "Version 2.0 Demo",
+    submenu: [
+      { label: "Flare", href: "/dashboard/ecommerce" },
+      {
+        label: "HisPattern.com",
+        href: "https://Hispattern.com",
+        external: true,
+      },
+    ],
+  },
+  {
+    key: "jesus",
+    label: "Jesus",
+    icon: <FaCross />,
+    section: "Version 1.0 Subject Maps",
+    submenu: [
+      { label: "Old Testament Jesus 1", href: "/oldtestamentjesus1" },
+      { label: "Old Testament Jesus 2", href: "/oldtestamentjesus2" },
+    ],
+  },
+  {
+    key: "promises",
+    label: "Promises",
+    icon: <FaHeart />,
+    section: "Version 1.0 Subject Maps",
+    submenu: [{ label: "Message of Hope", href: "/messageofhope" }],
+  },
+  {
+    key: "prophecy",
+    label: "Prophecy",
+    icon: <FaClock />,
+    section: "Version 1.0 Subject Maps",
+    submenu: [
+      { label: "Empires", href: "/empires" },
+      { label: "Keys (todo)", href: "/keys" },
+    ],
+  },
+  {
+    key: "land",
+    label: "Land of the Living",
+    icon: <FaLeaf />,
+    section: "Version 1.0 Subject Maps",
+    submenu: [{ label: "What is Spirit", href: "/whatisSpirit" }],
+  },
+];
+
+const Sidebar = () => {
+  const [collapsed, setCollapsed] = useState(false);
+  const [openSection, setOpenSection] = useState("flare");
+  const submenuRefs = useRef({});
+  const [submenuHeights, setSubmenuHeights] = useState({});
+
+  useEffect(() => {
+    const newHeights = {};
+    navSections.forEach((section) => {
+      const ref = submenuRefs.current[section.key];
+      newHeights[section.key] =
+        openSection === section.key && !collapsed && ref ? ref.scrollHeight : 0;
+    });
+    setSubmenuHeights(newHeights);
+  }, [openSection, collapsed]);
+
+  // Group sections by their section title
+  const groupedSections = navSections.reduce((acc, section) => {
+    if (!acc[section.section]) acc[section.section] = [];
+    acc[section.section].push(section);
+    return acc;
+  }, {});
 
   return (
-    <div className={`sidebar ${collapsed ? "collapsed" : ""}`}>
+    <div className={`sidebar${collapsed ? " collapsed" : ""}`}>
       <div className="sidebar-header">
-        {collapsed ? (
-          <div className="flare-icon">🔥</div>
-        ) : (
-          <h2>Flare Bible Study</h2>
-        )}
+        <button
+          className="sidebar-toggle"
+          onClick={() => setCollapsed((c) => !c)}
+          aria-label="Toggle sidebar"
+        >
+          🔥
+        </button>
+        {!collapsed && <h2 className="sidebar-title">Flare Bible Study</h2>}
       </div>
       <nav className="sidebar-nav">
-        <ul>
-          <li>
-            <div
-              className="nav-item-header"
-              onClick={() => toggleExpanded("dashboard")}
-            >
-              <a href="/dashboard" className="nav-link">
-                <span className="nav-icon">📊</span>
-                <span className="nav-text">Dashboard</span>
-              </a>
-              <span
-                className={`caret ${expandedItems.dashboard ? "expanded" : ""}`}
-              >
-                ▼
-              </span>
-            </div>
-            {expandedItems.dashboard && (
-              <ul className="sub-menu">
-                <li>
-                  <a href="/dashboard/overview" className="sub-nav-link">
-                    <span className="sub-nav-icon">📈</span>
-                    <span className="sub-nav-text">Overview</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/dashboard/analytics" className="sub-nav-link">
-                    <span className="sub-nav-icon">📊</span>
-                    <span className="sub-nav-text">Analytics</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/dashboard/reports" className="sub-nav-link">
-                    <span className="sub-nav-icon">📋</span>
-                    <span className="sub-nav-text">Reports</span>
-                  </a>
-                </li>
-              </ul>
-            )}
-          </li>
-          <li>
-            <div
-              className="nav-item-header"
-              onClick={() => toggleExpanded("bible")}
-            >
-              <a href="/bible" className="nav-link">
-                <span className="nav-icon">📖</span>
-                <span className="nav-text">Bible Study</span>
-              </a>
-              <span
-                className={`caret ${expandedItems.bible ? "expanded" : ""}`}
-              >
-                ▼
-              </span>
-            </div>
-            {expandedItems.bible && (
-              <ul className="sub-menu">
-                <li>
-                  <a href="/oldtestamentjesus1" className="sub-nav-link">
-                    <span className="sub-nav-icon">📜</span>
-                    <span className="sub-nav-text">Old Testament</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/bible/new-testament" className="sub-nav-link">
-                    <span className="sub-nav-icon">📖</span>
-                    <span className="sub-nav-text">New Testament</span>
-                  </a>
-                </li>
-                <li>
-                  <a href="/bible/verses" className="sub-nav-link">
-                    <span className="sub-nav-icon">🎯</span>
-                    <span className="sub-nav-text">Daily Verses</span>
-                  </a>
-                </li>
-                <li>
-                  <NavLink
-                    to="/oldtestamentjesus1"
-                    className={({ isActive }) =>
-                      "sub-nav-link" + (isActive ? " active" : "")
+        {Object.entries(groupedSections).map(([sectionTitle, sections]) => (
+          <div className="nav-section" key={sectionTitle}>
+            <div className="nav-section-title">{sectionTitle}</div>
+            <ul>
+              {sections.map((section) => (
+                <li key={section.key}>
+                  <div
+                    className={`nav-link nav-link-expand${openSection === section.key ? " active" : ""}`}
+                    onClick={() =>
+                      setOpenSection(
+                        openSection === section.key ? null : section.key,
+                      )
                     }
+                    style={{ cursor: "pointer" }}
                   >
-                    <span className="sub-nav-icon">✨</span>
-                    <span className="sub-nav-text">Old Testament Jesus 1</span>
-                  </NavLink>
+                    <span className="nav-icon">{section.icon}</span>
+                    {!collapsed && (
+                      <span
+                        className="nav-text"
+                        style={{
+                          color:
+                            openSection === section.key ? "#6366f1" : undefined,
+                        }}
+                      >
+                        {section.label}
+                      </span>
+                    )}
+                    {!collapsed && (
+                      <span className="nav-chevron">
+                        <ChevronIcon expanded={openSection === section.key} />
+                      </span>
+                    )}
+                  </div>
+                  <ul
+                    className="sub-menu"
+                    ref={(el) => (submenuRefs.current[section.key] = el)}
+                    style={{
+                      maxHeight: submenuHeights[section.key] || 0,
+                      overflow: "hidden",
+                      background: "#f7f9fb",
+                      margin: 0,
+                      padding: "0 0 0 48px",
+                      border: "none",
+                      transition:
+                        "max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    }}
+                  >
+                    {section.submenu.map((item, idx) => (
+                      <li key={item.label}>
+                        {item.external ? (
+                          <a
+                            className="nav-link"
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {item.label}
+                          </a>
+                        ) : (
+                          <a href={item.href} className="sub-nav-link">
+                            {item.label}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </li>
-              </ul>
-            )}
-          </li>
-          <li>
-            <a href="/notes" className="nav-link">
-              <span className="nav-icon">📝</span>
-              <span className="nav-text">Notes</span>
-            </a>
-          </li>
-          <li>
-            <a href="/search" className="nav-link">
-              <span className="nav-icon">🔍</span>
-              <span className="nav-text">Search</span>
-            </a>
-          </li>
-          <li>
-            <a href="/favorites" className="nav-link">
-              <span className="nav-icon">⭐</span>
-              <span className="nav-text">Favorites</span>
-            </a>
-          </li>
-          <li>
-            <a href="/settings" className="nav-link">
-              <span className="nav-icon">⚙️</span>
-              <span className="nav-text">Settings</span>
-            </a>
-          </li>
-        </ul>
+              ))}
+            </ul>
+          </div>
+        ))}
       </nav>
     </div>
   );

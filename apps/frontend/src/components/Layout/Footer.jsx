@@ -1,21 +1,25 @@
-import React from 'react';
-import './Footer.css';
+import React from "react";
+import "./Footer.css";
+import { FaScroll } from "react-icons/fa";
 
 const Footer = () => {
   return (
     <div className="footer">
       <div className="footer-content">
         <div className="footer-left">
-          <span>© 2024 Flare Bible Study. All rights reserved.</span>
+          <span>
+            <FaScroll style={{ marginRight: "8px", verticalAlign: "middle" }} />
+            Flare Bible Study. MIT Copyright © 2025.
+          </span>
         </div>
         <div className="footer-right">
-          <a href="/privacy" className="footer-link">Privacy</a>
-          <a href="/terms" className="footer-link">Terms</a>
-          <a href="/help" className="footer-link">Help</a>
+          <span>
+            Web Sites by <b>Don Milligan.</b>
+          </span>
         </div>
       </div>
     </div>
   );
 };
 
-export default Footer; 
+export default Footer;
