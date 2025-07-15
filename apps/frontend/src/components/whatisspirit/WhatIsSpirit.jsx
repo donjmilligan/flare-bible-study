@@ -2,16 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { FaPlus } from "react-icons/fa";
 import { FaTrash } from "react-icons/fa";
-import "./OldTestamentJesus2.css";
+import "./WhatisSpirit.css";
 
-const API_URL = "http://localhost:3001/api/bible/oldtestamentjesus2";
+const API_URL = "http://localhost:3001/api/bible/whatspiritis";
 const WIDTH = 600;
 const HEIGHT = 600;
 const MARGIN = 120;
 const FONT_SIZE = 12;
 const FONT_FAMILY = "Times New Roman, Times, serif";
 
-export default function OldTestamentJesus2() {
+export default function WhatisSpirit() {
   const svgRef = useRef();
   const zoomRef = useRef();
   const [data, setData] = useState([]);
@@ -378,6 +378,7 @@ export default function OldTestamentJesus2() {
           maxHeight: "80vh",
           background: "#fff",
           color: "#2d3a4a",
+          borderRadius: "8px 0 0 8px",
           boxShadow: "-2px 0 8px #0001",
           borderRadius: "10px",
           zIndex: 1200,

@@ -4,6 +4,8 @@ require("dotenv").config();
 
 const oldTestamentJesus1 = require("./routes/oldTestamentJesus1");
 const oldTestamentJesus2 = require("./routes/oldTestamentJesus2");
+const worldEmpire = require("./routes/worldEmpireJesus");
+const whatIsSpirit = require("./routes/whatIsSpirit");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,6 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/bible", oldTestamentJesus1);
 app.use("/api/bible", oldTestamentJesus2);
+app.use("/api/bible", worldEmpire);
+app.use("/api/bible", whatIsSpirit);
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({

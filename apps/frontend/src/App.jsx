@@ -4,6 +4,8 @@ import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import OldTestamentJesus1 from "./pages/OldTestamentJesus1";
 import OldTestamentJesus2 from "./components/oldtestamentjesus2/OldTestamentJesus2";
+import WorldEmpire from "./components/worldempire/WorldEmpire";
+import WhatIsSpirit from "./components/whatisspirit/WhatIsSpirit";
 
 function DashboardContent() {
   return (
@@ -122,7 +124,9 @@ function App() {
         <Routes>
           <Route path="/" element={<DashboardContent />} />
           <Route path="/oldtestamentjesus1" element={<OldTestamentJesus1 />} />
-          <Route path="/oldtestamentjesus2" element={<OldTestamentJesus2 />} />
+          <Route path="/oldtestamentjesus2" element={<OldTestamentJesus2 />} />\
+          <Route path="/worldempire" element={<WorldEmpire />} />
+          <Route path="/whatspiritis" element={<WhatIsSpirit />} />
         </Routes>
       </Layout>
     </div>

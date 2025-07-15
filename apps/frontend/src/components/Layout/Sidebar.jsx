@@ -75,7 +75,7 @@ const navSections = [
     icon: <FaClock />,
     section: "Version 1.0 Subject Maps",
     submenu: [
-      { label: "Empires", href: "/empires" },
+      { label: "Empires", href: "/worldempire" },
       { label: "Keys (todo)", href: "/keys" },
     ],
   },
@@ -84,7 +84,7 @@ const navSections = [
     label: "Land of the Living",
     icon: <FaLeaf />,
     section: "Version 1.0 Subject Maps",
-    submenu: [{ label: "What is Spirit", href: "/whatisSpirit" }],
+    submenu: [{ label: "What is Spirit", href: "/whatspiritis" }],
   },
 ];
 
