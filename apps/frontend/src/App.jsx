@@ -3,6 +3,7 @@ import Layout from "./components/Layout/Layout";
 import "./App.css";
 import { Routes, Route } from "react-router-dom";
 import OldTestamentJesus1 from "./pages/OldTestamentJesus1";
+import OldTestamentJesus2 from "./components/oldtestamentjesus2/OldTestamentJesus2";
 
 function DashboardContent() {
   return (
@@ -121,6 +122,7 @@ function App() {
         <Routes>
           <Route path="/" element={<DashboardContent />} />
           <Route path="/oldtestamentjesus1" element={<OldTestamentJesus1 />} />
+          <Route path="/oldtestamentjesus2" element={<OldTestamentJesus2 />} />
         </Routes>
       </Layout>
     </div>
