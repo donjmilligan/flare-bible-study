@@ -1,39 +1,31 @@
 {
-  "name": "flare-bible-study-react",
+
+  "name": "flare-bible-study",
   "version": "1.0.0",
-  "description": "React-based World Empires in Prophecy visualization",
+  "description": "[![Donate](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/hispattern)",
   "main": "index.js",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
   },
-  "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.4.0",
-    "bootstrap": "^5.3.0",
-    "d3": "^3.5.17",
-    "fs": "^0.0.1-security",
-    "jquery": "^3.7.0",
-    "material-design-icons-iconfont": "^6.7.0",
-    "moment": "^2.29.4",
-    "pg": "^8.16.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^7.6.3",
-    "react-scripts": "5.0.1"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Berekettf/flare-bible-study.git"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Berekettf/flare-bible-study/issues"
+  },
+  "homepage": "https://github.com/Berekettf/flare-bible-study#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": "prettier --write"
+
   }
 }
