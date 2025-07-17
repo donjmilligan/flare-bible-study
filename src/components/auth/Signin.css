@@ -1,0 +1,85 @@
+.signin-container {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 32px 24px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signin-container h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  color: #2563eb;
+}
+
+.signin-container form {
+  width: 100%;
+}
+
+.signin-container .form-section {
+  margin-bottom: 18px;
+  width: 100%;
+}
+
+.signin-container label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.signin-container input[type="email"],
+.signin-container input[type="password"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.signin-container input[type="checkbox"] {
+  margin-right: 6px;
+}
+
+.signin-container .form-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.signin-container .submit-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.signin-container .submit-btn:hover {
+  background: #1746a0;
+}
+
+.signin-container .already-registered {
+  font-size: 0.95rem;
+  color: #555;
+}
+
+.signin-container .already-registered a {
+  color: #2563eb;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+.signin-container .already-registered a:hover {
+  text-decoration: underline;
+} 
