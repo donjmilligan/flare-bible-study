@@ -1,0 +1,337 @@
+/* Info Panel Styles */
+.info-section-v1 {
+  /* height: 85vh; */
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.info-section-v1 .card-header {
+  background-color: #6777ef;
+  color: white;
+  border-bottom: none;
+}
+
+.info-section-v1 .card-header h4 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.info-section-v1 .card-body {
+  padding: 1.5rem;
+}
+
+/* Tab Navigation */
+.nav-pills .nav-item .nav-link {
+  color: #6c757d;
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  transition: all 0.3s ease;
+  border: none;
+  background: none;
+}
+
+.nav-pills .nav-item .nav-link:hover {
+  color: #6777ef;
+  background-color: #f8f9fa;
+}
+
+.nav-pills .nav-item .nav-link.active {
+  color: white;
+  background-color: #6777ef;
+  border-radius: 4px;
+}
+
+.nav-pills .nav-item .nav-link i {
+  margin-right: 0.5rem;
+}
+
+/* Tab Content */
+.tab-content {
+  margin-top: 1rem;
+}
+
+.tab-pane {
+  display: none;
+}
+
+.tab-pane.show.active {
+  display: block;
+}
+
+/* Bible Texts Section */
+#showSubjects {
+  display: block;
+  position: relative;
+  opacity: 1;
+  margin-top: 7vh;
+}
+
+#showSubjects h6 {
+  text-align: center;
+  font-size: 2vh;
+  color: #777;
+}
+
+#showSubjects h6 span {
+  color: #999;
+}
+
+#showTexts {
+  display: block;
+  position: relative;
+  padding: 0 112px 0 0;
+}
+
+#showTexts h5 {
+  color: #777;
+  text-align: left;
+  font-family: 'Patua One', serif;
+  font-size: 17px;
+  margin-bottom: 1em;
+}
+
+.versenum {
+  display: inline;
+  font-weight: 700;
+  width: 2em;
+  color: #14485F;
+}
+
+.versenum:hover {
+  color: #D84C11;
+  text-shadow: 0 1px 3px #FB7763;
+}
+
+.versetext {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #777;
+  font-family: 'Special Elite', cursive;
+  text-align: justify;
+  margin: 0 0 5px;
+}
+
+/* About Section */
+.fi55 {
+  animation: opV 5s;
+}
+
+.fi77 {
+  animation: opV 7s;
+}
+
+.fi10 {
+  animation: opV 10s;
+}
+
+.fi12 {
+  animation: opV 13s;
+}
+
+@keyframes opV {
+  0% { opacity: 0; }
+  20% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.quotecontent {
+  display: inline-block;
+  position: relative;
+  float: left;
+  width: 100%;
+  margin: 0;
+  padding: 1em 0 0;
+}
+
+.quotecontent i {
+  display: inline;
+  margin: 0 0 1em -0.25em;
+  height: 0.3em;
+  font-size: 3.5em;
+  color: #E2EBF2;
+}
+
+.quotecontent p {
+  display: inline;
+  margin-top: 1em;
+  color: #444952;
+  text-align: justify;
+  font-family: 'Special Elite', cursive;
+  font-size: large;
+}
+
+.verse-container {
+  display: block;
+  width: 100%;
+  position: relative;
+}
+
+.book {
+  text-align: right;
+  text-align-last: right;
+  font-weight: 400;
+  font-size: large;
+  line-height: 3em;
+  font-family: 'Patua One', cursive;
+}
+
+.text_justify {
+  text-align: justify;
+}
+
+/* Settings Section */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 16px;
+}
+
+th, td {
+  text-align: left;
+  width: 50%;
+  padding: 24px 0;
+  font-size: 20px;
+}
+
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  display: inline-block;
+}
+
+input[type=range]:focus {
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 16.6px;
+  cursor: pointer;
+  box-shadow: 1.4px 1.4px 1px rgba(26, 44, 162, 0.27), 0px 0px 1.4px rgba(30, 50, 184, 0.27);
+  background: #ffffff;
+  border-radius: 25px;
+  border: 3.9px solid rgba(22, 21, 24, 0.1);
+}
+
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 1.1px 1.1px 5px rgba(61, 45, 105, 0.51), 0px 0px 1.1px rgba(71, 53, 123, 0.51);
+  border: 3px solid #5b4967;
+  height: 30px;
+  width: 30px;
+  border-radius: 30px;
+  background: #ffffff;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -10.6px;
+}
+
+button.mdi {
+  background-color: #DDD;
+  margin: 0;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button.mdi:hover {
+  background-color: #6777ef;
+  color: white;
+}
+
+button#plus {
+  float: right;
+}
+
+button#minus {
+  float: left;
+}
+
+/* Instructions Section */
+#instructions h5 {
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+#instructions ul {
+  margin-bottom: 1rem;
+}
+
+#instructions li {
+  margin-bottom: 0.5rem;
+}
+
+#instructions ol li {
+  margin-bottom: 0.25rem;
+}
+
+/* Utility Classes */
+.clear {
+  clear: both;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  font-size: 0;
+  line-height: 0;
+}
+
+.clear::after {
+  content: '';
+  width: 80px;
+  display: block;
+  height: 10px;
+  margin: 30px auto;
+  line-height: 1.1;
+}
+
+.or-spacer {
+  display: block;
+  position: relative;
+  margin: 0 auto;
+  width: 80%;
+  padding: 1em 0 0;
+}
+
+.spacer-mask2 {
+  overflow: hidden;
+  height: 2em;
+}
+
+.spacer-mask2:after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 2em;
+  border-radius: 30em / 2em;
+  box-shadow: 0 0 0.5em #777;
+  margin: 2em 0 0 auto;
+  padding: 0 0 1em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .info-section-v1 {
+    height: 70vh;
+  }
+  
+  .info-section-v1 .card-body {
+    padding: 1rem;
+  }
+  
+  .nav-pills .nav-item .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  #showTexts {
+    padding: 0 20px 0 0;
+  }
+} 
+
+@media (max-width: 991.98px) {
+  .info-section-v1 {
+    max-height: 70vh;
+  }
+} 
