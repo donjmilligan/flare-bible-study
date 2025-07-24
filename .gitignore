@@ -86,5 +86,8 @@ yarn-error.log*
 .nx/workspace-data
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
-node_modules
-node_modules
+# Ignore all node_modules folders in the project
+node_modules/
+apps/frontend/node_modules/
+apps/backend/node_modules/
+server/node_modules/
