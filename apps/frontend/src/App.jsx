@@ -3,6 +3,7 @@ import Layout from "./components/Layout/Layout";
 import OldTestamentJesus1 from "./components/oldtestamentjesus1/OldTestamentJesus1";
 import OldTestamentJesus2 from "./components/oldtestamentjesus2/OldTestamentJesus2";
 import MessageofHope from "./components/messageofhope/MessageofHope";
+import Empires from "./components/empires/Empires";
 import Dashboard from "./components/dashboard/Dashboard";
 import "./App.css";
 
@@ -14,6 +15,7 @@ function App() {
         <Route path="/jesus1" element={<OldTestamentJesus1 />} />
         <Route path="/jesus2" element={<OldTestamentJesus2 />} />
         <Route path="/messageofhope" element={<MessageofHope />} />
+        <Route path="/empires" element={<Empires />} />
       </Routes>
     </Layout>
   );
