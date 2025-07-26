@@ -1,0 +1,132 @@
+.navbar {
+  align-items: center;
+  height: 64px;
+  padding-top: 20px;
+  margin-right: 5px;
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 100;
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hamburger-line {
+  width: 100%;
+  height: 2px;
+  background-color: var(--text-primary);
+  transition: all 0.3s;
+}
+
+.sidebar-toggle:hover .hamburger-line {
+  background-color: var(--primary-color);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #222;
+  margin-right: 18px;
+  letter-spacing: 0.5px;
+  padding-right: 30px;
+}
+
+.navbar-brand i {
+  margin-left: 4px;
+  color: #ff9800;
+  font-size: 22px;
+}
+
+.brand-logo {
+  width: 32px;
+  height: 32px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.brand-text {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-input {
+  width: 300px;
+  padding: 8px 12px 8px 36px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: var(--background-color);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.sidebar-toggle-btn {
+  padding: 0;
+  min-width: unset;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.sidebar-toggle-btn svg {
+  width: 30px;
+  height: 30px;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .search-input {
+    width: 200px;
+  }
+
+  .brand-text {
+    display: none;
+  }
+}
