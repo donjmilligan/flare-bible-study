@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 
 const bibleDataRoutes = require("./routes/bibleData");
+const oldTestamentJesus2 = require("./routes/oldTestamentJesus2");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -14,6 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use("/api/bible", bibleDataRoutes);
+app.use("/api/bible", oldTestamentJesus2);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

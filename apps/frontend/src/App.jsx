@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout/Layout";
 import OldTestamentJesus1 from "./components/oldtestamentjesus1/OldTestamentJesus1";
+import OldTestamentJesus2 from "./components/oldtestamentjesus2/OldTestamentJesus2";
 import Dashboard from "./components/dashboard/Dashboard";
 import "./App.css";
 
@@ -10,6 +11,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/jesus1" element={<OldTestamentJesus1 />} />
+        <Route path="/jesus2" element={<OldTestamentJesus2 />} />
       </Routes>
     </Layout>
   );

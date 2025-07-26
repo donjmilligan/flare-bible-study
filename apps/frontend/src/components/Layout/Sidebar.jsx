@@ -54,8 +54,8 @@ const navSections = [
         title: "Jesus",
         icon: <i className="fas fa-cross"></i>,
         submenu: [
-          { title: "Old Testament Jesus 1", path: "/jesus/ot1" },
-          { title: "Old Testament Jesus 2", path: "/jesus/ot2" },
+          { title: "Old Testament Jesus 1", path: "/jesus1" },
+          { title: "Old Testament Jesus 2", path: "/jesus2" },
         ],
       },
       {
