@@ -1,0 +1,192 @@
+
+  .arc-diagram-container {
+      display: flex;
+      margin: 0;
+      padding-bottom: 20px;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px; /* Minimum height, grows with content */
+      height: auto;
+      background: #fff;
+      overflow: visible; /* Changed from hidden to visible for better transitions */
+      will-change: transform; /* Performance optimization */
+    }
+    
+    svg {
+      width: 90%;
+      max-width: 600px;
+      height: 200px;
+      background-color: transparent;
+      padding: 0;
+      display: block;
+      overflow: visible;
+      transition: transform 0.2s ease-out, font-size 0.2s ease-out;
+      transform-origin: center;
+      will-change: transform; /* Performance optimization */
+    }
+    
+    /* Make all links invisible by default */
+    .arc-diagram-container .links path {
+      stroke: transparent;
+      stroke-width: 2.5px;
+    }
+    
+    .arc-diagram-container .links path.link--incoming{
+      stroke: #01cf19 !important;
+      stroke-width: 2.5px;
+    }
+    .arc-diagram-container .links path.link--outgoing {
+      stroke: #23c0f0 !important;
+      stroke-width: 2.5px;
+    }
+    
+    .node--highlighted {
+      font-weight: bold;
+    }
+    .text--incoming {
+      font-weight: bold;
+    }
+    .text--outgoing {
+      font-weight: bold;
+    }
+    
+    .node-label {
+      font-family: sans-serif;
+      font-size: 12px;
+      cursor: pointer;
+      transition: fill 0.2s;
+     
+    }
+    
+    .node-label.node--highlighted {
+      
+      font-weight: bold;
+    }
+  
+  .floating-toolbar {
+    position: absolute;
+    bottom: 32px;
+    right: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255,255,255,0.95);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    padding: 12px 8px;
+    z-index: 10;
+  }
+  .floating-toolbar button {
+    background: none;
+    border: none;
+    font-size: 10px;
+    font-weight: 400;
+    cursor: pointer;
+    border-radius: 8px;
+    padding: 4px 8px;
+    letter-spacing: 0.5px;
+    outline: none;
+  }
+  
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.3);
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px 24px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    min-width: 320px;
+    max-width: 90vw;
+    text-align: center;
+  }
+  .modal-content h2 {
+    margin-top: 0;
+  }
+  .modal-content button {
+    margin-top: 16px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    border: none;
+    background: #2196f3;
+    color: #fff;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .modal-content button:hover {
+    background: #1769aa;
+  }
+  
+  .d3-diagram {
+    width: 600px;
+    height: 600px;
+    background: #fff;
+    display: block;
+  }
+
+.arc-diagram-insert-form form div[style*='margin-top: 8px'],
+.arc-diagram-rename-form form div[style*='margin-top: 8px'] {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.arc-diagram-insert-form button,
+.arc-diagram-rename-form button {
+  margin: 0;
+  min-width: 70px;
+}
+
+.arc-diagram-context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 8px;
+  display: flex;
+  gap: 8px;
+  min-width: 120px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.arc-diagram-context-menu button {
+  background: none;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+}
+
+.arc-diagram-context-menu button:hover {
+  background-color: #f5f5f5;
+}
+
+/* Ensure text elements are clickable */
+.arc-diagram-container text {
+  cursor: pointer;
+  pointer-events: all;
+}
+
+/* Make sure the container allows pointer events */
+.arc-diagram-container {
+  pointer-events: all;
+}
+    

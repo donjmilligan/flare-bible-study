@@ -41,12 +41,14 @@ const Navbar = ({ sidebarCollapsed, onToggleSidebar }) => {
           )}
         </button>
         <div className="navbar-brand">
-          Fl{" "}
-          <i
-            className="fas fa-fire fa-rotate-45"
-            style={{ color: "#ff9800", fontSize: 22, margin: "0 4px" }}
-          ></i>
-          re
+          <h2>
+            Fl
+            <i
+              className="fas fa-fire fa-rotate-45"
+              style={{ color: "#ff9800", fontSize: 22, margin: "0 4px" }}
+            ></i>
+            re
+          </h2>
         </div>
       </div>
     </nav>

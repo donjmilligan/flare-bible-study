@@ -2,7 +2,7 @@
   align-items: center;
   height: 64px;
   padding-top: 20px;
-  margin-right: 30px;
+  margin-right: 5px;
   background-color: var(--card-background);
   border-bottom: 1px solid var(--border-color);
   z-index: 100;
@@ -44,7 +44,8 @@
   font-weight: bold;
   color: #222;
   margin-right: 18px;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  padding-right: 30px;
 }
 
 .navbar-brand i {

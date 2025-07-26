@@ -23,11 +23,16 @@ function bilink(root) {
   const map = new Map(root.leaves().map((d) => [id(d), d]));
   for (const d of root.leaves()) {
     d.incoming = [];
-    d.outgoing = d.data.imports.map((i) => [d, map.get(i)]);
+    d.outgoing = d.data.imports
+      .map((i) => [d, map.get(i)])
+      .filter(([, target]) => target); // Only include valid targets
   }
   for (const d of root.leaves()) {
     for (const o of d.outgoing) {
-      o[1].incoming.push(o);
+      if (o[1]) {
+        // Guard against undefined targets
+        o[1].incoming.push(o);
+      }
     }
   }
   return root;
@@ -54,10 +59,10 @@ const OldTestamentJesus1 = () => {
     imports: [],
     prefix: "",
   });
-  const [showHowTo, setShowHowTo] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
-  const [textSize, setTextSize] = useState(12);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [textSize, setTextSize] = useState(8);
+  const [editingNode, setEditingNode] = useState(null);
+  const [editName, setEditName] = useState("");
 
   // Fetch data
   useEffect(() => {
@@ -67,14 +72,109 @@ const OldTestamentJesus1 = () => {
       .catch(console.error);
   }, []);
 
+  // Event listeners for zoom and text size
+  useEffect(() => {
+    const handleZoomIn = () => {
+      setZoomLevel((prev) => Math.min(prev + 0.1, 2));
+    };
+
+    const handleZoomOut = () => {
+      setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
+    };
+
+    const handleTextSize = (event) => {
+      const change = event.detail;
+      setTextSize((prev) => Math.max(6, Math.min(prev + change, 16)));
+    };
+
+    window.addEventListener("d3-zoom-in", handleZoomIn);
+    window.addEventListener("d3-zoom-out", handleZoomOut);
+    window.addEventListener("d3-text-size", handleTextSize);
+
+    return () => {
+      window.removeEventListener("d3-zoom-in", handleZoomIn);
+      window.removeEventListener("d3-zoom-out", handleZoomOut);
+      window.removeEventListener("d3-text-size", handleTextSize);
+    };
+  }, []);
+
   // Hide context menu on click elsewhere
   useEffect(() => {
     if (!contextMenu.visible) return;
-    const handleClick = () =>
+    const handleClick = (event) => {
+      // Don't close if clicking on the context menu itself
+      if (event.target.closest(".arc-diagram-context-menu")) return;
       setContextMenu({ ...contextMenu, visible: false });
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+    };
     window.addEventListener("click", handleClick);
-    return () => window.removeEventListener("click", handleClick);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("click", handleClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [contextMenu]);
+
+  // Handle rename functionality
+  const handleRename = (node) => {
+    const currentName = node.data.name || "";
+    const parts = currentName.split(".");
+    const nodeName = parts[parts.length - 1].trim();
+    setEditName(nodeName);
+    setEditingNode(node);
+    setContextMenu({ ...contextMenu, visible: false });
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!editingNode || !editName.trim()) return;
+
+    const currentName = editingNode.data.name;
+    const parts = currentName.split(".");
+    const prefix = parts.length > 1 ? parts.slice(0, -1).join(".") + "." : "";
+    const newFullName = prefix + editName.trim();
+
+    try {
+      // Delete the old node
+      await fetch(
+        `http://localhost:3001/api/bible/oldtestamentjesus1/${encodeURIComponent(currentName)}`,
+        {
+          method: "DELETE",
+        },
+      );
+
+      // Create a new node with the new name
+      await fetch("http://localhost:3001/api/bible/oldtestamentjesus1", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newFullName,
+          imports: editingNode.data.imports || [],
+        }),
+      });
+
+      // Refresh data
+      const response = await fetch(
+        "http://localhost:3001/api/bible/oldtestamentjesus1",
+      );
+      const json = await response.json();
+      setData(json.data);
+
+      setEditingNode(null);
+      setEditName("");
+    } catch (error) {
+      console.error("Error renaming node:", error);
+      alert("Failed to rename node. Please try again.");
+    }
+  };
+
+  const handleRenameCancel = () => {
+    setEditingNode(null);
+    setEditName("");
+  };
 
   // D3 rendering
   useEffect(() => {
@@ -92,7 +192,10 @@ const OldTestamentJesus1 = () => {
       .attr("width", width)
       .attr("height", width)
       .attr("viewBox", [-width / 2, -width / 2, width, width])
-      .attr("style", "max-width: 90%; height: auto; font: 8px sans-serif;");
+      .attr(
+        "style",
+        `max-width: 90%; height: auto; font: ${textSize}px sans-serif; transform: scale(${zoomLevel}); transform-origin: center;`,
+      );
     const line = d3
       .lineRadial()
       .curve(d3.curveBundle.beta(0.85))
@@ -126,6 +229,7 @@ const OldTestamentJesus1 = () => {
       .attr("x", (d) => (d.x < Math.PI ? 6 : -6))
       .attr("text-anchor", (d) => (d.x < Math.PI ? "start" : "end"))
       .attr("transform", (d) => (d.x >= Math.PI ? "rotate(180)" : null))
+      .style("font-size", `${textSize}px`)
       .text((d) => {
         const name = d.data.name || "";
         const parts = name.split(".");
@@ -144,12 +248,18 @@ const OldTestamentJesus1 = () => {
       })
       .on("contextmenu", function (event, d) {
         event.preventDefault();
-        setContextMenu({
-          visible: true,
-          x: event.clientX,
-          y: event.clientY,
-          node: d,
-        });
+        event.stopPropagation();
+        console.log("Right-clicked node:", d);
+
+        // Get the SVG container's bounding rect
+        const svgContainer = svgRef.current.closest(".arc-diagram-container");
+        const containerRect = svgContainer.getBoundingClientRect();
+
+        // Calculate position relative to the container
+        const x = event.clientX - containerRect.left;
+        const y = event.clientY - containerRect.top;
+
+        setContextMenu({ visible: true, x: x, y: y, node: d });
       })
       .call((text) =>
         text
@@ -197,7 +307,7 @@ const OldTestamentJesus1 = () => {
         false,
       );
     }
-  }, [data]);
+  }, [data, zoomLevel, textSize]);
 
   // Delete node handler
   const handleDelete = async (node) => {
@@ -227,28 +337,6 @@ const OldTestamentJesus1 = () => {
     });
     setContextMenu({ ...contextMenu, visible: false });
   };
-  const handleInsertSubmit = async (e) => {
-    e.preventDefault();
-    await fetch("http://localhost:3001/api/bible/oldtestamentjesus1", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: insertForm.name,
-        imports: insertForm.imports,
-      }),
-    });
-    setInsertForm({ visible: false, parent: null, name: "", imports: [] });
-    // Refresh data
-    fetch("http://localhost:3001/api/bible/oldtestamentjesus1")
-      .then((res) => res.json())
-      .then((json) => setData(json.data))
-      .catch(console.error);
-  };
-
-  // Zoom handlers (stubbed for now)
-  const handleZoomIn = () => setZoomLevel((z) => Math.min(z + 0.1, 2));
-  const handleZoomOut = () => setZoomLevel((z) => Math.max(z - 0.1, 0.5));
-  const handleTextSize = () => setTextSize((s) => (s >= 20 ? 12 : s + 2));
 
   // Helper to get all unique node names (last part after last dot)
   const allNodeNames = Array.from(
@@ -269,101 +357,138 @@ const OldTestamentJesus1 = () => {
     ),
   ).filter(Boolean);
 
+  // Helper to get full node names for imports
+  const allFullNodeNames = data.map((d) => d.name);
+
   return (
     <div className="arc-diagram-container" style={{ position: "relative" }}>
-      <svg ref={svgRef} style={{ transform: `scale(${zoomLevel})` }} />
-      {/* Floating Toolbar */}
-      <div className="floating-toolbar">
-        <button title="Zoom In" onClick={handleZoomIn}>
-          Zoom In
-        </button>
-        <button title="Zoom Out" onClick={handleZoomOut}>
-          Zoom Out
-        </button>
-        <button title="Text Size" onClick={handleTextSize}>
-          <span style={{ fontSize: "1.2em" }}>Text Size</span>
-        </button>
-        <button title="How To" onClick={() => setShowHowTo(true)}>
-          How To
-        </button>
-        <button title="About" onClick={() => setShowAbout(true)}>
-          About
-        </button>
-      </div>
-      {/* How To Modal */}
-      {showHowTo && (
-        <div className="modal-overlay" onClick={() => setShowHowTo(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>How To</h2>
-            <p>
-              Use the toolbar to zoom, change text size, or learn more about
-              this diagram. Right-click nodes for more options.
-            </p>
-            <button onClick={() => setShowHowTo(false)}>Close</button>
-          </div>
-        </div>
-      )}
-      {/* About Modal */}
-      {showAbout && (
-        <div className="modal-overlay" onClick={() => setShowAbout(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h2>About</h2>
-            <p>
-              This visualization shows Old Testament connections using D3.js.
-              Created for Flare Bible Study.
-            </p>
-            <button onClick={() => setShowAbout(false)}>Close</button>
-          </div>
-        </div>
-      )}
+      <svg ref={svgRef} />
       {contextMenu.visible && (
         <div
           className="arc-diagram-context-menu"
           style={{
-            position: "fixed",
+            position: "absolute",
             top: contextMenu.y,
             left: contextMenu.x,
-            zIndex: 1000,
+            zIndex: 9999,
             background: "#fff",
             border: "1px solid #ccc",
             padding: "8px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             display: "flex",
             gap: "8px",
+            borderRadius: "6px",
+            minWidth: "120px",
           }}
         >
+          <button
+            onClick={() => handleRename(contextMenu.node)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#2196f3",
+              fontSize: "12px",
+              fontWeight: 500,
+              cursor: "pointer",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f0f8ff")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
+            title="Rename Node"
+          >
+            Rename
+          </button>
           <button
             onClick={() => handleDelete(contextMenu.node)}
             style={{
               background: "none",
               border: "none",
-              color: "red",
-              fontSize: "10px",
-              fontWeight: 400,
+              color: "#f44336",
+              fontSize: "12px",
+              fontWeight: 500,
               cursor: "pointer",
-              padding: "4px 8px",
-              borderRadius: "6px",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
             }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#ffebee")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
             title="Delete Node"
           >
-            Delete Node
+            Delete
           </button>
           <button
             onClick={() => handleInsert(contextMenu.node)}
             style={{
               background: "none",
               border: "none",
-              color: "#2196f3",
-              fontSize: "10px",
-              fontWeight: 400,
+              color: "#4caf50",
+              fontSize: "12px",
+              fontWeight: 500,
               cursor: "pointer",
-              padding: "4px 8px",
-              borderRadius: "6px",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
             }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f1f8e9")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
             title="Insert Node"
           >
-            Insert Node
+            Insert
           </button>
+        </div>
+      )}
+      {/* Rename form */}
+      {editingNode && (
+        <div
+          className="arc-diagram-rename-form"
+          style={{
+            position: "fixed",
+            top: "30%",
+            left: "50%",
+            transform: "translate(-50%, -30%)",
+            zIndex: 2000,
+            background: "#fff",
+            border: "1px solid #ccc",
+            padding: "16px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          }}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRenameSubmit();
+            }}
+          >
+            <div>
+              <b>Rename Node</b>
+            </div>
+            <div style={{ margin: "8px 0" }}>
+              <label>
+                New Name:{" "}
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  style={{ marginLeft: 8 }}
+                />
+              </label>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <button type="submit">Save</button>
+              <button type="button" onClick={handleRenameCancel}>
+                Cancel
+              </button>
+            </div>
+          </form>
         </div>
       )}
       {/* Insert node form */}
@@ -501,7 +626,7 @@ const OldTestamentJesus1 = () => {
                 <option value="" disabled>
                   Select import...
                 </option>
-                {allNodeNames
+                {allFullNodeNames
                   .filter((name) => !insertForm.imports.includes(name))
                   .map((name) => (
                     <option key={name} value={name}>

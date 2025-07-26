@@ -8,21 +8,12 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-container">
-      <Sidebar collapsed={collapsed} />
-      <div className="main-content">
-        <Navbar toggleSidebar={() => setCollapsed(!collapsed)} />
-        <div className="page-content">
-          <h2>Dashboard</h2>
-          
-          {/* Stats Grid */}
-          <div className="stats-grid">
-            
-          </div>
+      <h2>Dashboard</h2>
 
-          {/* Recent Activity */}
-          
-        </div>
-      </div>
+      {/* Stats Grid */}
+      <div className="stats-grid"></div>
+
+      {/* Recent Activity */}
     </div>
   );
 };

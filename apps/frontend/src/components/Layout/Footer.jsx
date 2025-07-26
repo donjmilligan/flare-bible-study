@@ -1,21 +1,13 @@
-import React from 'react';
-import './Footer.css';
+import React from "react";
+import "./Footer.css";
 
-const Footer = () => {
-  return (
-    <div className="footer">
-      <div className="footer-content">
-        <div className="footer-left">
-          <span>© 2024 Flare Bible Study. All rights reserved.</span>
-        </div>
-        <div className="footer-right">
-          <a href="/privacy" className="footer-link">Privacy</a>
-          <a href="/terms" className="footer-link">Terms</a>
-          <a href="/help" className="footer-link">Help</a>
-        </div>
-      </div>
+const Footer = () => (
+  <footer className="main-footer">
+    <div className="footer-left">
+      Web Sites by <a href="https://freelancedon.ca/"> Don Milligan</a>
     </div>
-  );
-};
+    <div className="footer-right">MIT © 2019</div>
+  </footer>
+);
 
-export default Footer; 
+export default Footer;
