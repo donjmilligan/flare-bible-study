@@ -1,0 +1,80 @@
+.login-container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 32px 24px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.login-container h2 {
+  margin-bottom: 24px;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #222;
+}
+.login-container form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.login-container input {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+.login-container input:focus {
+  border-color: #2563eb;
+  outline: none;
+}
+.login-container button {
+  padding: 12px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-container button:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+.login-container .error {
+  color: #dc2626;
+  background: #fee2e2;
+  border-radius: 4px;
+  padding: 8px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.login-container .success {
+  color: #16a34a;
+  background: #dcfce7;
+  border-radius: 4px;
+  padding: 8px;
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  text-align: center;
+}
+.login-container .switch-link {
+  margin-top: 18px;
+  color: #2563eb;
+  cursor: pointer;
+  text-align: center;
+  font-size: 1rem;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+}
