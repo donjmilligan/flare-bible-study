@@ -1,0 +1,141 @@
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 300px;
+    height: auto;
+    width: 100%;
+    background: #f8fafc;
+    padding: 0 0 32px 0;
+  }
+  
+  .card {
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    border-radius: 16px;
+    background: #fff;
+    margin-bottom: 32px;
+    width: 100%;
+    max-width: 1200px;
+  }
+  
+  .card-header {
+    background: #f5f7fa;
+    border-bottom: 1px solid #eee;
+    border-radius: 16px 16px 0 0;
+  }
+  
+  .card-body {
+    padding: 24px 16px 16px 16px;
+    background: #fafbfc;
+    border-radius: 0 0 16px 16px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #bible-chart svg {
+    width: 98%;
+    height: 520px;
+    min-height: 520px;
+    max-width: 100%;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    display: block;
+    overflow: visible;
+  }
+  
+  svg .arc-link {
+    stroke: #23c0f0;
+    stroke-width: 2.5px;
+    fill: none;
+    opacity: 0.7;
+    transition: stroke 0.2s, opacity 0.2s;
+  }
+  svg .arc-link:hover {
+    stroke: #01cf19;
+    opacity: 1;
+    stroke-width: 4px;
+  }
+  
+  svg rect {
+    fill: #1D84B2;
+    stroke: #bbb;
+    transition: fill 0.2s, stroke 0.2s;
+    cursor: pointer;
+  }
+  svg rect:hover {
+    fill: #ffe082;
+    stroke: #ffb300;
+  }
+  
+  svg text {
+    font-family: 'Nunito', 'Lato', 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+    fill: #333;
+    pointer-events: none;
+  }
+  
+  #dashboard-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.18);
+    z-index: 9999;
+  }
+  #dashboard-overlay-content {
+    background: rgba(40,40,40,0.97);
+    color: #fff;
+    padding: 32px 40px;
+    border-radius: 16px;
+    font-size: 1.3rem;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow: auto;
+    text-align: center;
+    position: relative;
+  }
+  #dashboard-overlay-close {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #ffe082;
+  }
+  
+  .form-group {
+    margin-right: 12px;
+    margin-bottom: 8px;
+  }
+  .form-control, .book-select, .type-select {
+    min-width: 180px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background: #fff;
+    color: #222;
+    transition: border 0.2s;
+  }
+  .form-control:focus, .book-select:focus, .type-select:focus {
+    border: 1.5px solid #23c0f0;
+    outline: none;
+  }
+  
+  @media (max-width: 900px) {
+    .card { max-width: 98vw; }
+    #bible-chart svg { min-width: 600px; }
+  }
+  @media (max-width: 600px) {
+    .dashboard-container { padding: 0 0 16px 0; }
+    .card { max-width: 100vw; border-radius: 0; }
+    #bible-chart svg { min-width: 320px; }
+    .card-header { flex-direction: column; gap: 8px; }
+  } 

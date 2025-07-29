@@ -1,23 +1,61 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout/Layout";
 import OldTestamentJesus1 from "./components/oldtestamentjesus1/OldTestamentJesus1";
 import OldTestamentJesus2 from "./components/oldtestamentjesus2/OldTestamentJesus2";
 import MessageofHope from "./components/messageofhope/MessageofHope";
 import Empires from "./components/empires/Empires";
+import Flare from "./components/flare/Flare";
+import SignUp from "./components/auth/SignUp";
+import Login from "./components/auth/Login";
 import Dashboard from "./components/dashboard/Dashboard";
 import "./App.css";
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/jesus1" element={<OldTestamentJesus1 />} />
-        <Route path="/jesus2" element={<OldTestamentJesus2 />} />
-        <Route path="/messageofhope" element={<MessageofHope />} />
-        <Route path="/empires" element={<Empires />} />
-      </Routes>
-    </Layout>
+    <Routes>
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/"
+        element={
+          <Layout>
+            <Flare />
+          </Layout>
+        }
+      />
+      <Route
+        path="/jesus1"
+        element={
+          <Layout>
+            <OldTestamentJesus1 />
+          </Layout>
+        }
+      />
+      <Route
+        path="/jesus2"
+        element={
+          <Layout>
+            <OldTestamentJesus2 />
+          </Layout>
+        }
+      />
+      <Route
+        path="/messageofhope"
+        element={
+          <Layout>
+            <MessageofHope />
+          </Layout>
+        }
+      />
+      <Route
+        path="/empires"
+        element={
+          <Layout>
+            <Empires />
+          </Layout>
+        }
+      />
+    </Routes>
   );
 }
 
