@@ -67,7 +67,7 @@ const navSections = [
         title: "Prophecy",
         icon: <i className="fas fa-clock"></i>,
         submenu: [
-          { title: "Empires", path: "/empire" },
+          { title: "Empires", path: "/empires" },
           { title: "Key(todo)", path: "/keys" },
         ],
       },
