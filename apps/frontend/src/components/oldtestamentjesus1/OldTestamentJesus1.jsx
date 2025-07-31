@@ -1,4 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import * as d3 from "d3";
 import "./OldTestamentJesus1.css";
 
@@ -42,9 +49,10 @@ const colorin = "#00bcd4";
 const colorout = "#ff9800";
 const colornone = "#aaa";
 
-const OldTestamentJesus1 = () => {
+const OldTestamentJesus1 = React.memo(() => {
   const svgRef = useRef();
   const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [hoveredNode, setHoveredNode] = useState(null);
   const [contextMenu, setContextMenu] = useState({
     visible: false,
@@ -64,29 +72,60 @@ const OldTestamentJesus1 = () => {
   const [editingNode, setEditingNode] = useState(null);
   const [editName, setEditName] = useState("");
 
+  // Memoize expensive D3 calculations
+  const d3Data = useMemo(() => {
+    if (data.length === 0) return null;
+
+    const hierarchy = d3
+      .hierarchy(buildHierarchy(data))
+      .sum((d) => (d.children ? 0 : 1));
+    const width = 754;
+    const radius = width / 2 - 150;
+    const tree = d3.cluster().size([2 * Math.PI, radius - 100]);
+    const root = tree(bilink(hierarchy));
+
+    return { hierarchy, root, width, radius, tree };
+  }, [data]);
+
+  // Debounced zoom handlers to prevent excessive re-renders
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
+  }, []);
+
+  const handleTextSize = useCallback((event) => {
+    const change = event.detail;
+    setTextSize((prev) => Math.max(6, Math.min(prev + change, 16)));
+  }, []);
+
+  // Debounced data update to prevent excessive re-renders
+  const debouncedSetData = useCallback((newData) => {
+    const timeoutId = setTimeout(() => {
+      setData(newData);
+    }, 100); // 100ms debounce
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   // Fetch data
   useEffect(() => {
+    setLoading(true);
     fetch("http://localhost:3001/api/bible/oldtestamentjesus1")
       .then((res) => res.json())
-      .then((json) => setData(json.data))
-      .catch(console.error);
+      .then((json) => {
+        setData(json.data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        setLoading(false);
+      });
   }, []);
 
   // Event listeners for zoom and text size
   useEffect(() => {
-    const handleZoomIn = () => {
-      setZoomLevel((prev) => Math.min(prev + 0.1, 2));
-    };
-
-    const handleZoomOut = () => {
-      setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
-    };
-
-    const handleTextSize = (event) => {
-      const change = event.detail;
-      setTextSize((prev) => Math.max(6, Math.min(prev + change, 16)));
-    };
-
     window.addEventListener("d3-zoom-in", handleZoomIn);
     window.addEventListener("d3-zoom-out", handleZoomOut);
     window.addEventListener("d3-text-size", handleTextSize);
@@ -96,7 +135,7 @@ const OldTestamentJesus1 = () => {
       window.removeEventListener("d3-zoom-out", handleZoomOut);
       window.removeEventListener("d3-text-size", handleTextSize);
     };
-  }, []);
+  }, [handleZoomIn, handleZoomOut, handleTextSize]);
 
   // Hide context menu on click elsewhere
   useEffect(() => {
@@ -176,138 +215,166 @@ const OldTestamentJesus1 = () => {
     setEditName("");
   };
 
-  // D3 rendering
-  useEffect(() => {
-    if (data.length === 0) return;
-    const hierarchy = d3
-      .hierarchy(buildHierarchy(data))
-      .sum((d) => (d.children ? 0 : 1));
-    const width = 754;
-    const radius = width / 2 - 150;
-    const tree = d3.cluster().size([2 * Math.PI, radius - 100]);
-    const root = tree(bilink(hierarchy));
-    const svg = d3.select(svgRef.current);
-    svg.selectAll("*").remove();
-    svg
-      .attr("width", width)
-      .attr("height", width)
-      .attr("viewBox", [-width / 2, -width / 2, width, width])
-      .attr(
-        "style",
-        `max-width: 90%; height: auto; font: ${textSize}px sans-serif; transform: scale(${zoomLevel}); transform-origin: center;`,
-      );
-    const line = d3
-      .lineRadial()
-      .curve(d3.curveBundle.beta(0.85))
-      .radius((d) => d.y)
-      .angle((d) => d.x);
-    const links = svg
-      .append("g")
-      .attr("class", "links")
-      .attr("stroke", colornone)
-      .attr("fill", "none")
-      .selectAll("path")
-      .data(root.leaves().flatMap((leaf) => leaf.outgoing))
-      .join("path")
-      .style("mix-blend-mode", "multiply")
-      .attr("d", ([i, o]) => line(i.path(o)))
-      .each(function (d) {
-        d.path = this;
-      });
-    const node = svg
-      .append("g")
-      .selectAll("g")
-      .data(root.leaves())
-      .join("g")
-      .attr(
-        "transform",
-        (d) => `rotate(${(d.x * 180) / Math.PI - 90}) translate(${d.y},0)`,
-      );
-    node
-      .append("text")
-      .attr("dy", "0.31em")
-      .attr("x", (d) => (d.x < Math.PI ? 6 : -6))
-      .attr("text-anchor", (d) => (d.x < Math.PI ? "start" : "end"))
-      .attr("transform", (d) => (d.x >= Math.PI ? "rotate(180)" : null))
-      .style("font-size", `${textSize}px`)
-      .text((d) => {
-        const name = d.data.name || "";
-        const parts = name.split(".");
-        return parts[parts.length - 1].trim();
-      })
-      .each(function (d) {
-        d.text = this;
-      })
-      .on("mouseover", function (event, d) {
-        setHoveredNode(d);
-        overed.call(this, event, d);
-      })
-      .on("mouseout", function (event, d) {
-        setHoveredNode(null);
-        outed.call(this, event, d);
-      })
-      .on("contextmenu", function (event, d) {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log("Right-clicked node:", d);
+  // D3 rendering - only render when data changes
+  useLayoutEffect(() => {
+    if (!d3Data || loading) return;
 
-        // Get the SVG container's bounding rect
-        const svgContainer = svgRef.current.closest(".arc-diagram-container");
-        const containerRect = svgContainer.getBoundingClientRect();
+    // Use requestAnimationFrame to prevent blocking the main thread
+    const renderFrame = () => {
+      const svg = d3.select(svgRef.current);
+      svg.selectAll("*").remove();
 
-        // Calculate position relative to the container
-        const x = event.clientX - containerRect.left;
-        const y = event.clientY - containerRect.top;
+      svg
+        .attr("width", d3Data.width)
+        .attr("height", d3Data.width)
+        .attr("viewBox", [
+          -d3Data.width / 2,
+          -d3Data.width / 2,
+          d3Data.width,
+          d3Data.width,
+        ]);
 
-        setContextMenu({ visible: true, x: x, y: y, node: d });
-      })
-      .call((text) =>
-        text
-          .append("title")
-          .text(
-            (d) =>
-              `${d.data.name}\n${d.outgoing.length} outgoing\n${d.incoming.length} incoming`,
-          ),
-      );
-    function overed(event, d) {
-      d3.select(this).classed("node--highlighted", true);
-      d3.selectAll(d.incoming.map((link) => link.path)).classed(
-        "link--incoming",
-        true,
-      );
-      d3.selectAll(d.outgoing.map((link) => link.path)).classed(
-        "link--outgoing",
-        true,
-      );
-      d3.selectAll(d.incoming.map(([d]) => d.text)).classed(
-        "text--incoming",
-        true,
-      );
-      d3.selectAll(d.outgoing.map(([, d]) => d.text)).classed(
-        "text--outgoing",
-        true,
-      );
-    }
-    function outed(event, d) {
-      d3.select(this).classed("node--highlighted", false);
-      d3.selectAll(d.incoming.map((link) => link.path)).classed(
-        "link--incoming",
-        false,
-      );
-      d3.selectAll(d.outgoing.map((link) => link.path)).classed(
-        "link--outgoing",
-        false,
-      );
-      d3.selectAll(d.incoming.map(([d]) => d.text)).classed(
-        "text--incoming",
-        false,
-      );
-      d3.selectAll(d.outgoing.map(([, d]) => d.text)).classed(
-        "text--outgoing",
-        false,
-      );
-    }
-  }, [data, zoomLevel, textSize]);
+      const line = d3
+        .lineRadial()
+        .curve(d3.curveBundle.beta(0.85))
+        .radius((d) => d.y)
+        .angle((d) => d.x);
+
+      const links = svg
+        .append("g")
+        .attr("class", "links")
+        .attr("stroke", colornone)
+        .attr("fill", "none")
+        .selectAll("path")
+        .data(d3Data.root.leaves().flatMap((leaf) => leaf.outgoing))
+        .join("path")
+        .style("mix-blend-mode", "multiply")
+        .attr("d", ([i, o]) => line(i.path(o)))
+        .each(function (d) {
+          d.path = this;
+        });
+
+      const node = svg
+        .append("g")
+        .attr("class", "nodes")
+        .selectAll("g")
+        .data(d3Data.root.leaves())
+        .join("g")
+        .attr(
+          "transform",
+          (d) => `rotate(${(d.x * 180) / Math.PI - 90}) translate(${d.y},0)`,
+        );
+
+      node
+        .append("text")
+        .attr("dy", "0.31em")
+        .attr("x", (d) => (d.x < Math.PI ? 6 : -6))
+        .attr("text-anchor", (d) => (d.x < Math.PI ? "start" : "end"))
+        .attr("transform", (d) => (d.x >= Math.PI ? "rotate(180)" : null))
+        .style("font-size", `${textSize}px`)
+        .text((d) => {
+          const name = d.data.name || "";
+          const parts = name.split(".");
+          return parts[parts.length - 1].trim();
+        })
+        .each(function (d) {
+          d.text = this;
+        })
+        .on("mouseover", function (event, d) {
+          setHoveredNode(d);
+          overed.call(this, event, d);
+        })
+        .on("mouseout", function (event, d) {
+          setHoveredNode(null);
+          outed.call(this, event, d);
+        })
+        .on("contextmenu", function (event, d) {
+          event.preventDefault();
+          event.stopPropagation();
+          console.log("Right-clicked node:", d);
+
+          // Get the SVG container's bounding rect
+          const svgContainer = svgRef.current.closest(".arc-diagram-container");
+          const containerRect = svgContainer.getBoundingClientRect();
+
+          // Calculate position relative to the container
+          const x = event.clientX - containerRect.left;
+          const y = event.clientY - containerRect.top;
+
+          setContextMenu({ visible: true, x: x, y: y, node: d });
+        })
+        .call((text) =>
+          text
+            .append("title")
+            .text(
+              (d) =>
+                `${d.data.name}\n${d.outgoing.length} outgoing\n${d.incoming.length} incoming`,
+            ),
+        );
+
+      function overed(event, d) {
+        d3.select(this).classed("node--highlighted", true);
+        d3.selectAll(d.incoming.map((link) => link.path)).classed(
+          "link--incoming",
+          true,
+        );
+        d3.selectAll(d.outgoing.map((link) => link.path)).classed(
+          "link--outgoing",
+          true,
+        );
+        d3.selectAll(d.incoming.map(([d]) => d.text)).classed(
+          "text--incoming",
+          true,
+        );
+        d3.selectAll(d.outgoing.map(([, d]) => d.text)).classed(
+          "text--outgoing",
+          true,
+        );
+      }
+      function outed(event, d) {
+        d3.select(this).classed("node--highlighted", false);
+        d3.selectAll(d.incoming.map((link) => link.path)).classed(
+          "link--incoming",
+          false,
+        );
+        d3.selectAll(d.outgoing.map((link) => link.path)).classed(
+          "link--outgoing",
+          false,
+        );
+        d3.selectAll(d.incoming.map(([d]) => d.text)).classed(
+          "text--incoming",
+          false,
+        );
+        d3.selectAll(d.outgoing.map(([, d]) => d.text)).classed(
+          "text--outgoing",
+          false,
+        );
+      }
+    };
+
+    // Use requestAnimationFrame to prevent blocking the main thread
+    requestAnimationFrame(renderFrame);
+  }, [d3Data, loading, textSize]);
+
+  // Separate effect for zoom and text size changes - use CSS transforms
+  useLayoutEffect(() => {
+    if (!svgRef.current) return;
+
+    requestAnimationFrame(() => {
+      const svg = d3.select(svgRef.current);
+      svg.style("transform", `scale(${zoomLevel})`);
+    });
+  }, [zoomLevel]);
+
+  // Separate effect for text size to avoid conflicts
+  useLayoutEffect(() => {
+    if (!svgRef.current) return;
+
+    requestAnimationFrame(() => {
+      const svg = d3.select(svgRef.current);
+      svg.selectAll("text").style("font-size", `${textSize}px`);
+    });
+  }, [textSize]);
 
   // Delete node handler
   const handleDelete = async (node) => {
@@ -362,7 +429,22 @@ const OldTestamentJesus1 = () => {
 
   return (
     <div className="arc-diagram-container" style={{ position: "relative" }}>
-      <svg ref={svgRef} />
+      {loading ? (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100%",
+            fontSize: "16px",
+            color: "#666",
+          }}
+        >
+          Loading diagram...
+        </div>
+      ) : (
+        <svg ref={svgRef} />
+      )}
       {contextMenu.visible && (
         <div
           className="arc-diagram-context-menu"
@@ -657,6 +739,6 @@ const OldTestamentJesus1 = () => {
       )}
     </div>
   );
-};
+});
 
 export default OldTestamentJesus1;

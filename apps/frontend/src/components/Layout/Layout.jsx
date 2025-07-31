@@ -1,28 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import "./Layout.css";
 
-const Layout = ({ children }) => {
+const Layout = React.memo(({ children }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeSubItem, setActiveSubItem] = useState(null);
   const location = useLocation();
 
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
+  // Memoized toggle handler for performance
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((prev) => !prev);
+  }, []);
 
-  const handleSubNavClick = (itemId) => {
+  const handleSubNavClick = useCallback((itemId) => {
     setActiveSubItem(itemId);
-  };
+  }, []);
 
-  const handleCloseSubSidebar = () => {
+  const handleCloseSubSidebar = useCallback(() => {
     setActiveSubItem(null);
-  };
+  }, []);
+
+  // Memoized content to prevent unnecessary re-renders
+  const memoizedChildren = useMemo(() => children, [children]);
 
   return (
     <div className="layout-root">
@@ -59,7 +63,7 @@ const Layout = ({ children }) => {
               </div>
             )}
             <main className={`main-content${activeSubItem ? " shrunk" : ""}`}>
-              <div className="main-content-inner">{children}</div>
+              <div className="main-content-inner">{memoizedChildren}</div>
             </main>
           </div>
           <Footer />
@@ -67,9 +71,10 @@ const Layout = ({ children }) => {
       </div>
     </div>
   );
-};
+});
 
-function renderSubSidebarContent(activeSubItem) {
+// Memoized content renderer
+const renderSubSidebarContent = React.memo((activeSubItem) => {
   switch (activeSubItem) {
     case "settings":
       return <SettingsPanel />;
@@ -80,9 +85,9 @@ function renderSubSidebarContent(activeSubItem) {
     default:
       return null;
   }
-}
+});
 
-const SettingsPanel = () => (
+const SettingsPanel = React.memo(() => (
   <div style={{ padding: 16 }}>
     <h2>Settings</h2>
     <div style={{ marginBottom: 24 }}>
@@ -126,20 +131,20 @@ const SettingsPanel = () => (
       </div>
     </div>
   </div>
-);
+));
 
-const AboutPanel = () => (
+const AboutPanel = React.memo(() => (
   <div style={{ padding: 16 }}>
     <h2>About</h2>
     <p>This is the About panel content.</p>
   </div>
-);
+));
 
-const HowToPanel = () => (
+const HowToPanel = React.memo(() => (
   <div style={{ padding: 16 }}>
     <h2>How To</h2>
     <p>This is the How To panel content.</p>
   </div>
-);
+));
 
 export default Layout;

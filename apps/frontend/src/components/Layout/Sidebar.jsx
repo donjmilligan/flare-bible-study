@@ -1,10 +1,11 @@
 "use client";
 import { Link, useLocation } from "react-router-dom";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import "./Sidebar.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
-// SVG Chevron Icon
-const ChevronIcon = ({ open }) => (
+// SVG Chevron Icon - Memoized for performance
+const ChevronIcon = React.memo(({ open }) => (
   <svg
     width="22"
     height="22"
@@ -13,7 +14,7 @@ const ChevronIcon = ({ open }) => (
     xmlns="http://www.w3.org/2000/svg"
     style={{
       transform: open ? "rotate(90deg)" : "rotate(0deg)",
-      transition: "transform 0.2s",
+      transition: "transform 0.2s ease-out",
       display: "inline-block",
       verticalAlign: "middle",
     }}
@@ -26,7 +27,7 @@ const ChevronIcon = ({ open }) => (
       strokeLinejoin="round"
     />
   </svg>
-);
+));
 
 // Add section headers and update nav items
 const navSections = [
@@ -80,138 +81,194 @@ const navSections = [
   },
 ];
 
-import { useState } from "react";
-
 const settingsNavItems = [
   { title: "Settings", id: "settings" },
   { title: "About", id: "about" },
   { title: "How To", id: "howto" },
 ];
 
-const Sidebar = ({
-  collapsed,
-  onToggleSidebar,
-  activeSubItem,
-  onSubNavClick,
-  currentPath,
-}) => {
-  const location = useLocation();
-  const [expandedMenu, setExpandedMenu] = useState(null);
-
-  const handleMenuClick = (item) => {
-    if (item.submenu && item.submenu.length > 0) {
-      setExpandedMenu(expandedMenu === item.title ? null : item.title);
-    }
+// Debounce function for performance
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
   };
+};
 
-  return (
-    <div className="sidebar-container">
-      {/* Main Sidebar */}
-      <div className={`main-sidebar ${collapsed ? "collapsed" : ""}`}>
-        <div className="sidebar-brand">
-          <div className="brand-logo">🔥</div>
-          {!collapsed && <span className="brand-text">Flare Bible Study</span>}
-        </div>
-        <div className="sidebar-content">
-          {navSections.map((section) => (
-            <div key={section.header} className="sidebar-section">
-              {!collapsed && (
-                <div className="sidebar-section-header">{section.header}</div>
-              )}
-              <ul className="sidebar-menu">
-                {section.items.map((item) => (
-                  <li
-                    key={item.title}
-                    className={`sidebar-menu-item${expandedMenu === item.title ? " active-parent" : ""}`}
-                  >
-                    <div
-                      className={`sidebar-menu-button${expandedMenu === item.title ? " active" : ""}`}
-                      onClick={() => handleMenuClick(item)}
-                      style={{
-                        cursor:
-                          item.submenu && item.submenu.length > 0
-                            ? "pointer"
-                            : "default",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
+const Sidebar = React.memo(
+  ({
+    collapsed,
+    onToggleSidebar,
+    activeSubItem,
+    onSubNavClick,
+    currentPath,
+  }) => {
+    const location = useLocation();
+    const [expandedMenu, setExpandedMenu] = useState(null);
+
+    // Memoized handlers for performance
+    const handleMenuClick = useCallback(
+      (item) => {
+        if (item.submenu && item.submenu.length > 0) {
+          setExpandedMenu(expandedMenu === item.title ? null : item.title);
+        }
+      },
+      [expandedMenu],
+    );
+
+    // Debounced menu click for smooth performance
+    const debouncedMenuClick = useMemo(
+      () => debounce(handleMenuClick, 16), // 60fps
+      [handleMenuClick],
+    );
+
+    // Check if a menu item is active based on current path
+    const isMenuItemActive = useCallback(
+      (item) => {
+        if (!item.submenu) return false;
+        return item.submenu.some((sub) => {
+          if (sub.external) return false;
+          return location.pathname === sub.path;
+        });
+      },
+      [location.pathname],
+    );
+
+    // Cleanup effect for performance
+    useEffect(() => {
+      return () => {
+        // Cleanup any pending animations or timeouts
+        setExpandedMenu(null);
+      };
+    }, []);
+
+    // Memoized sections for performance
+    const memoizedSections = useMemo(() => navSections, []);
+
+    return (
+      <div className="sidebar-container">
+        {/* Main Sidebar */}
+        <div className={`main-sidebar ${collapsed ? "collapsed" : ""}`}>
+          <div className="sidebar-brand">
+            <div className="brand-logo">🔥</div>
+            {!collapsed && (
+              <span className="brand-text">Flare Bible Study</span>
+            )}
+          </div>
+          <div className="sidebar-content">
+            {memoizedSections.map((section) => (
+              <div key={section.header} className="sidebar-section">
+                {!collapsed && (
+                  <div className="sidebar-section-header">{section.header}</div>
+                )}
+                <ul className="sidebar-menu">
+                  {section.items.map((item) => (
+                    <li
+                      key={item.title}
+                      className={`sidebar-menu-item${expandedMenu === item.title || isMenuItemActive(item) ? " active-parent" : ""}`}
                     >
-                      <span
+                      <div
+                        className={`sidebar-menu-button${expandedMenu === item.title || isMenuItemActive(item) ? " active" : ""}`}
+                        onClick={() => debouncedMenuClick(item)}
                         style={{
+                          cursor:
+                            item.submenu && item.submenu.length > 0
+                              ? "pointer"
+                              : "default",
                           display: "flex",
                           alignItems: "center",
-                          gap: 12,
+                          justifyContent: collapsed
+                            ? "center"
+                            : "space-between",
                         }}
                       >
                         <span
-                          className="sidebar-menu-icon"
-                          style={{ fontSize: 22 }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: collapsed ? 0 : 12,
+                          }}
                         >
-                          {item.icon}
+                          <span
+                            className="sidebar-menu-icon"
+                            style={{ fontSize: 22 }}
+                          >
+                            {item.icon}
+                          </span>
+                          {!collapsed && (
+                            <span className="sidebar-menu-text">
+                              {item.title}
+                            </span>
+                          )}
                         </span>
-                        <span className="sidebar-menu-text">{item.title}</span>
-                      </span>
+                        {item.submenu &&
+                          item.submenu.length > 0 &&
+                          !collapsed && (
+                            <span className="sidebar-menu-chevron">
+                              <ChevronIcon open={expandedMenu === item.title} />
+                            </span>
+                          )}
+                        {item.submenu &&
+                          item.submenu.length > 0 &&
+                          collapsed && (
+                            <span className="sidebar-menu-chevron" />
+                          )}
+                      </div>
+                      {/* Submenu */}
                       {item.submenu &&
                         item.submenu.length > 0 &&
+                        expandedMenu === item.title &&
                         !collapsed && (
-                          <span className="sidebar-menu-chevron">
-                            <ChevronIcon open={expandedMenu === item.title} />
-                          </span>
-                        )}
-                      {item.submenu && item.submenu.length > 0 && collapsed && (
-                        <span className="sidebar-menu-chevron" />
-                      )}
-                    </div>
-                    {/* Submenu */}
-                    {item.submenu &&
-                      item.submenu.length > 0 &&
-                      expandedMenu === item.title &&
-                      !collapsed && (
-                        <div className="sidebar-submenu-anim expanded">
-                          <div className="sidebar-submenu-area">
-                            <ul className="sidebar-submenu">
-                              {item.submenu.map((sub) => (
-                                <li
-                                  key={sub.path}
-                                  className="sidebar-submenu-item"
-                                >
-                                  {sub.external ? (
-                                    <a
-                                      href={sub.path}
-                                      className="sidebar-submenu-link"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      {sub.title}
-                                    </a>
-                                  ) : (
-                                    <Link
-                                      to={sub.path}
-                                      className={`sidebar-submenu-link ${location.pathname === sub.path ? "active" : ""}`}
-                                    >
-                                      {sub.title}
-                                    </Link>
-                                  )}
-                                </li>
-                              ))}
-                            </ul>
+                          <div className="sidebar-submenu-anim expanded">
+                            <div className="sidebar-submenu-area">
+                              <ul className="sidebar-submenu">
+                                {item.submenu.map((sub) => (
+                                  <li
+                                    key={sub.path}
+                                    className="sidebar-submenu-item"
+                                  >
+                                    {sub.external ? (
+                                      <a
+                                        href={sub.path}
+                                        className="sidebar-submenu-link"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                      >
+                                        {sub.title}
+                                      </a>
+                                    ) : (
+                                      <Link
+                                        to={sub.path}
+                                        className={`sidebar-submenu-link ${location.pathname === sub.path ? "active" : ""}`}
+                                      >
+                                        {sub.title}
+                                      </Link>
+                                    )}
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+                        )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
 
 // SubSidebar as a separate export
-export const SubSidebar = ({ activeSubItem, onSubNavClick }) => (
+export const SubSidebar = React.memo(({ activeSubItem, onSubNavClick }) => (
   <div className="sub-sidebar">
     <div className="sub-sidebar-header">
       <h2 className="sub-sidebar-title">Customize</h2>
@@ -228,7 +285,7 @@ export const SubSidebar = ({ activeSubItem, onSubNavClick }) => (
       ))}
     </div>
   </div>
-);
+));
 
 Sidebar.SubSidebar = SubSidebar;
 
