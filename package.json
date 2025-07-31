@@ -1,16 +1,23 @@
 {
-
   "name": "flare-bible-study",
   "version": "1.0.0",
   "description": "[![Donate](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/hispattern)",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "nx": "nx",
+    "build:frontend": "nx build frontend",
+    "build:backend": "nx build backend",
+    "start:frontend": "nx start frontend",
+    "start:backend": "nx start backend",
+    "lint:frontend": "nx lint frontend",
+    "lint:backend": "nx lint backend"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Berekettf/flare-bible-study.git"
+    
   },
   "keywords": [],
   "author": "",
@@ -22,10 +29,11 @@
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^16.1.2",
+    "nx": "21.2.3",
     "prettier": "^3.6.2"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "prettier --write"
-
-  }
+  },
+  "nx": {}
 }
