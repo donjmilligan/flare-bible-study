@@ -1,6 +1,7 @@
 .sidebar-container {
   display: flex;
   height: 100%;
+  overflow: hidden;
 }
 
 .main-sidebar {
@@ -9,8 +10,14 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  transition: width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  will-change: width;
+  transition: width 0.15s ease-out;
+  overflow: hidden;
+  position: relative;
+  /* Add hardware acceleration */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Prevent layout thrashing */
+  contain: layout style paint;
 }
 
 .main-sidebar.collapsed {
@@ -21,6 +28,26 @@
   flex: 1;
   padding: 16px 0;
   overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Thin scrollbar styling */
+.sidebar-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 2px;
+}
+
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
 }
 
 .sidebar-menu {
@@ -45,8 +72,11 @@
   font-weight: 400;
   border-radius: 12px;
   margin: 0 8px;
-  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: background-color 0.15s ease-out;
   position: relative;
+  /* Add hardware acceleration */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .sidebar-menu-button:hover {
@@ -59,6 +89,21 @@
   background: none;
 }
 
+.sidebar-menu-button.active .sidebar-menu-icon {
+  color: #556ee6;
+  opacity: 1;
+}
+
+.main-sidebar.collapsed .sidebar-menu-button.active {
+  background-color: #f0f4ff;
+  color: #556ee6;
+}
+
+.main-sidebar.collapsed .sidebar-menu-button.active .sidebar-menu-icon {
+  color: #556ee6;
+  opacity: 1;
+}
+
 .sidebar-menu-icon {
   font-size: 18px;
   font-weight: 400;
@@ -67,17 +112,16 @@
   align-items: center;
   justify-content: center;
   opacity: 0.7;
-  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.15s ease-out;
   min-width: 20px;
 }
 
 .sidebar-menu-text {
-  transition: opacity 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-              transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.1s ease-out, transform 0.15s ease-out;
   font-size: 15px;
   font-weight: 400;
   flex: 1;
+  white-space: nowrap;
 }
 
 .main-sidebar.collapsed .sidebar-menu-text {
@@ -91,11 +135,15 @@
   justify-content: center;
   padding: 12px;
   gap: 0;
+  text-align: center;
 }
 
 .main-sidebar.collapsed .sidebar-menu-icon {
   margin: 0;
   transform: translateX(0);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Sub Sidebar */
@@ -165,7 +213,7 @@
   gap: 8px;
   padding: 16px 16px 8px 16px;
   margin: 0;
-  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: gap 0.15s ease-out, padding 0.15s ease-out;
 }
 
 .main-sidebar.collapsed .sidebar-brand {
@@ -185,7 +233,7 @@
   justify-content: center;
   border-radius: 8px;
   box-shadow: none;
-  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: none;
 }
 
 .main-sidebar.collapsed .brand-logo {
@@ -199,14 +247,13 @@
   font-weight: 600;
   font-size: 16px;
   color: var(--text-primary);
-  transition: opacity 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-              transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.1s ease-out, transform 0.15s ease-out;
   opacity: 1;
   width: auto;
   overflow: hidden;
   display: inline-block;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .main-sidebar.collapsed .brand-text {
@@ -270,7 +317,7 @@
   font-size: 14px;
   margin-left: 8px;
   display: inline-block;
-  transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
+  transition: transform 0.2s ease-out;
 }
 
 .main-sidebar.collapsed .sidebar-menu-chevron {
@@ -285,7 +332,8 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   margin: 18px 0 8px 18px;
-  transition: opacity 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: opacity 0.1s ease-out;
+  white-space: nowrap;
 }
 
 .main-sidebar.collapsed .sidebar-section-header {
@@ -300,6 +348,10 @@
   padding-bottom: 0;
 }
 
+.sidebar-menu-item.active-parent .sidebar-menu-button {
+  background-color: #f0f4ff;
+}
+
 /* Hide brand text when collapsed (JSX handles, but reinforce) */
 .main-sidebar.collapsed .brand-text {
   display: none;
@@ -309,7 +361,7 @@
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: max-height 0.7s cubic-bezier(0.4,0,0.2,1), opacity 0.5s cubic-bezier(0.4,0,0.2,1);
+  transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
 }
 .sidebar-submenu-anim.expanded {
   max-height: 500px;

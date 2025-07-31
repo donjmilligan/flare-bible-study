@@ -7,7 +7,7 @@ import Empires from "./components/empires/Empires";
 import Flare from "./components/flare/Flare";
 import SignUp from "./components/auth/SignUp";
 import Login from "./components/auth/Login";
-import Dashboard from "./components/dashboard/Dashboard";
+import WhatIsSpirit from "./components/whatspirit/WhatIsSpirit";
 import "./App.css";
 
 function App() {
@@ -52,6 +52,14 @@ function App() {
         element={
           <Layout>
             <Empires />
+          </Layout>
+        }
+      />
+      <Route
+        path="/whatisspirit"
+        element={
+          <Layout>
+            <WhatIsSpirit />
           </Layout>
         }
       />

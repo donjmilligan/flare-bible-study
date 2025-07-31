@@ -8,6 +8,7 @@ const messageOfHope = require("./routes/messageofHope");
 const empires = require("./routes/empires");
 const bibleBooks = require("./routes/bibleBooks");
 const authRoutes = require("./routes/auth");
+const whatIsSpirit = require("./routes/whatIsSpirit");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -18,12 +19,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/bible", bibleDataRoutes);
 app.use("/api/bible", oldTestamentJesus2);
 app.use("/api/bible", messageOfHope);
 app.use("/api/bible", empires);
 app.use("/api/bible", bibleBooks);
-app.use("/api/auth", authRoutes);
+app.use("/api/bible", whatIsSpirit);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

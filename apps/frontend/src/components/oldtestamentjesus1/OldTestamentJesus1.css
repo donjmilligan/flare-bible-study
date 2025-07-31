@@ -1,28 +1,48 @@
 
   .arc-diagram-container {
       display: flex;
-      margin: 0;
-      padding-bottom: 20px;
-      align-items: center;
-      justify-content: center;
-      min-height: 200px; /* Minimum height, grows with content */
-      height: auto;
+      margin: 0 !important;
+      padding: 20px;
+      align-items: flex-start;
+      justify-content: flex-start;
+      min-height: 100%; /* Use full available height */
+      height: 100%; /* Use full available height */
       background: #fff;
-      overflow: visible; /* Changed from hidden to visible for better transitions */
-      will-change: transform; /* Performance optimization */
+      overflow: auto; /* Restored scrollbar */
+      width: 100% !important; /* Use full width with !important */
+      max-width: 100% !important; /* Ensure no max-width constraint */
+      box-sizing: border-box; /* Include padding in width calculation */
+      flex: 1; /* Take up all available space */
+      /* Add hardware acceleration */
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      /* Prevent layout thrashing */
+      contain: layout style paint;
+      /* Isolate rendering */
+      isolation: isolate;
+      /* Optimize for performance */
+      will-change: transform;
     }
     
     svg {
-      width: 90%;
-      max-width: 600px;
-      height: 200px;
+      width: 100% !important; /* Use full width instead of 90% */
+      max-width: none !important; /* Remove max-width constraint */
+      height: 100% !important; /* Use full height */
       background-color: transparent;
       padding: 0;
       display: block;
       overflow: visible;
       transition: transform 0.2s ease-out, font-size 0.2s ease-out;
       transform-origin: center;
-      will-change: transform; /* Performance optimization */
+      /* Add hardware acceleration */
+      transform: translateZ(0);
+      backface-visibility: hidden;
+      /* Prevent layout thrashing */
+      contain: layout style paint;
+      /* Isolate rendering */
+      isolation: isolate;
+      /* Optimize for performance */
+      will-change: transform;
     }
     
     /* Make all links invisible by default */
@@ -188,5 +208,24 @@
 /* Make sure the container allows pointer events */
 .arc-diagram-container {
   pointer-events: all;
+}
+    
+/* Scrollbar styling */
+.arc-diagram-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.arc-diagram-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.arc-diagram-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.arc-diagram-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
     
