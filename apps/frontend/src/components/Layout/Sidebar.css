@@ -9,7 +9,7 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  transition: width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: width;
 }
 
@@ -46,6 +46,7 @@
   border-radius: 12px;
   margin: 0 8px;
   transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
 }
 
 .sidebar-menu-button:hover {
@@ -66,16 +67,22 @@
   align-items: center;
   justify-content: center;
   opacity: 0.7;
+  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  min-width: 20px;
 }
 
 .sidebar-menu-text {
-  transition: opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s, width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s;
+  transition: opacity 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-size: 15px;
   font-weight: 400;
+  flex: 1;
 }
 
 .main-sidebar.collapsed .sidebar-menu-text {
   opacity: 0;
+  transform: translateX(-10px);
   width: 0;
   overflow: hidden;
 }
@@ -83,6 +90,12 @@
 .main-sidebar.collapsed .sidebar-menu-button {
   justify-content: center;
   padding: 12px;
+  gap: 0;
+}
+
+.main-sidebar.collapsed .sidebar-menu-icon {
+  margin: 0;
+  transform: translateX(0);
 }
 
 /* Sub Sidebar */
@@ -148,17 +161,17 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Always left-aligned */
+  justify-content: flex-start;
   gap: 8px;
   padding: 16px 16px 8px 16px;
   margin: 0;
-  transition: gap 0.3s;
+  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .main-sidebar.collapsed .sidebar-brand {
-  /* Do NOT set justify-content: center; keep left-aligned */
-  padding: 12px 0 12px 16px;
-  width: 100%;
+  justify-content: center;
+  padding: 12px 0;
+  gap: 0;
 }
 
 .brand-logo {
@@ -170,9 +183,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Remove border-radius for square, or set to 8px for slightly rounded */
   border-radius: 8px;
   box-shadow: none;
+  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .main-sidebar.collapsed .brand-logo {
@@ -186,7 +199,9 @@
   font-weight: 600;
   font-size: 16px;
   color: var(--text-primary);
-  transition: opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s, width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s;
+  transition: opacity 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              transform 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              width 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   opacity: 1;
   width: auto;
   overflow: hidden;
@@ -196,6 +211,7 @@
 
 .main-sidebar.collapsed .brand-text {
   opacity: 0;
+  transform: translateX(-10px);
   width: 0;
   overflow: hidden;
 }
@@ -257,6 +273,11 @@
   transition: transform 0.2s cubic-bezier(0.4,0,0.2,1);
 }
 
+.main-sidebar.collapsed .sidebar-menu-chevron {
+  opacity: 0;
+  transform: scale(0);
+}
+
 .sidebar-section-header {
   font-size: 12px;
   font-weight: 600;
@@ -264,6 +285,11 @@
   letter-spacing: 1px;
   text-transform: uppercase;
   margin: 18px 0 8px 18px;
+  transition: opacity 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.main-sidebar.collapsed .sidebar-section-header {
+  opacity: 0;
 }
 
 .sidebar-menu-item.active-parent {
