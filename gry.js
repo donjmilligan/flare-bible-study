@@ -1,1 +1,1 @@
-console.log("beka")
+console.log("pre-commit hook test!");
