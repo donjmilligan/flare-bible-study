@@ -61,9 +61,7 @@ const navSections = [
       {
         title: "Promises",
         icon: <i className="fas fa-heart"></i>,
-        submenu: [
-          { title: "Messages of Hope", path: "/promises/messages-of-hope" },
-        ],
+        submenu: [{ title: "Messages of Hope", path: "/messageofhope" }],
       },
       {
         title: "Prophecy",

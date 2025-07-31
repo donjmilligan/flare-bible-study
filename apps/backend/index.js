@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const bibleDataRoutes = require("./routes/bibleData");
 const oldTestamentJesus2 = require("./routes/oldTestamentJesus2");
+const messageOfHope = require("./routes/messageofHope");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,7 +17,7 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use("/api/bible", bibleDataRoutes);
 app.use("/api/bible", oldTestamentJesus2);
-
+app.use("/api/bible", messageOfHope);
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({
