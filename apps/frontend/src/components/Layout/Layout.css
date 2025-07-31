@@ -1,0 +1,130 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: #fff;
+  transition: all 0.3s ease;
+}
+
+/* Left Sidebar */
+.layout-sidebar {
+  width: 250px;
+  flex-shrink: 0;
+  background: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  transition: width 0.3s ease;
+  z-index: 1000;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+}
+
+/* Right Main Content Area */
+.layout-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.3s ease;
+  overflow: hidden;
+}
+
+/* Top Navbar */
+.layout-navbar {
+  height: 70px;
+  background: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  position: sticky;
+  top: 0;
+  flex-shrink: 0;
+}
+
+/* Main Content Area */
+.layout-content {
+  flex: 1;
+  padding: 0;
+  overflow-y: auto;
+  background: #f8f9fa;
+  height: calc(100vh - 130px); /* 100vh - navbar height - footer height */
+}
+
+/* Bottom Footer */
+.layout-footer {
+  height: 60px;
+  background: white;
+  border-top: 1px solid #e1e5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Collapsed state */
+.layout.sidebar-collapsed .layout-sidebar {
+  width: 60px;
+}
+
+/* Mobile overlay */
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1500;
+  cursor: pointer;
+}
+
+/* Mobile responsive */
+@media (max-width: 1024px) {
+  .layout-sidebar {
+    width: 200px;
+  }
+  
+  .layout.sidebar-collapsed .layout-sidebar {
+    width: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  .layout {
+    position: relative;
+  }
+  
+  .layout-sidebar {
+    position: fixed;
+    left: -100%;
+    top: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: 2000;
+    transition: left 0.3s ease;
+  }
+  
+  .layout.mobile-menu-open .layout-sidebar {
+    left: 0;
+  }
+  
+  .layout-main {
+    margin-left: 0;
+  }
+  
+  .layout.sidebar-collapsed .layout-sidebar {
+    width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-sidebar {
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .layout.sidebar-collapsed .layout-sidebar {
+    width: 100%;
+  }
+} 

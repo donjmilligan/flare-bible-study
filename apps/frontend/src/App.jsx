@@ -1,0 +1,119 @@
+import React from 'react'
+import Layout from './components/Layout/Layout'
+import './App.css'
+
+function App() {
+  return (
+    <div className="App">
+      <Layout>
+        <div className="dashboard-content">
+          <h1>Welcome to Flare Bible Study</h1>
+          <p>Your personal Bible study companion</p>
+          
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Total Bible Studies</h3>
+              <div className="stat-value">24</div>
+              <div className="stat-description">This month</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Notes Created</h3>
+              <div className="stat-value">156</div>
+              <div className="stat-description">Total notes</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Study Time</h3>
+              <div className="stat-value">42h</div>
+              <div className="stat-description">This week</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Favorites</h3>
+              <div className="stat-value">18</div>
+              <div className="stat-description">Saved verses</div>
+            </div>
+          </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Total Bible Studies</h3>
+              <div className="stat-value">24</div>
+              <div className="stat-description">This month</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Notes Created</h3>
+              <div className="stat-value">156</div>
+              <div className="stat-description">Total notes</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Study Time</h3>
+              <div className="stat-value">42h</div>
+              <div className="stat-description">This week</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Favorites</h3>
+              <div className="stat-value">18</div>
+              <div className="stat-description">Saved verses</div>
+            </div>
+          </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Total Bible Studies</h3>
+              <div className="stat-value">24</div>
+              <div className="stat-description">This month</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Notes Created</h3>
+              <div className="stat-value">156</div>
+              <div className="stat-description">Total notes</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Study Time</h3>
+              <div className="stat-value">42h</div>
+              <div className="stat-description">This week</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Favorites</h3>
+              <div className="stat-value">18</div>
+              <div className="stat-description">Saved verses</div>
+            </div>
+          </div>
+          <div className="stats-grid">
+            <div className="stat-card">
+              <h3>Total Bible Studies</h3>
+              <div className="stat-value">24</div>
+              <div className="stat-description">This month</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Notes Created</h3>
+              <div className="stat-value">156</div>
+              <div className="stat-description">Total notes</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Study Time</h3>
+              <div className="stat-value">42h</div>
+              <div className="stat-description">This week</div>
+            </div>
+            
+            <div className="stat-card">
+              <h3>Favorites</h3>
+              <div className="stat-value">18</div>
+              <div className="stat-description">Saved verses</div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    </div>
+  )
+}
+
+export default App
