@@ -9,7 +9,7 @@
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  transition: width 0.15s cubic-bezier(0.4,0,0.2,1);
+  transition: width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: width;
 }
 
@@ -45,7 +45,7 @@
   font-weight: 400;
   border-radius: 12px;
   margin: 0 8px;
-  transition: all 0.2s;
+  transition: all 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .sidebar-menu-button:hover {
@@ -69,7 +69,7 @@
 }
 
 .sidebar-menu-text {
-  transition: opacity 0.3s ease;
+  transition: opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s, width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s;
   font-size: 15px;
   font-weight: 400;
 }
@@ -148,6 +148,7 @@
 .sidebar-brand {
   display: flex;
   align-items: center;
+  justify-content: flex-start; /* Always left-aligned */
   gap: 8px;
   padding: 16px 16px 8px 16px;
   margin: 0;
@@ -155,8 +156,8 @@
 }
 
 .main-sidebar.collapsed .sidebar-brand {
-  justify-content: center;
-  padding: 12px 0;
+  /* Do NOT set justify-content: center; keep left-aligned */
+  padding: 12px 0 12px 16px;
   width: 100%;
 }
 
@@ -185,6 +186,18 @@
   font-weight: 600;
   font-size: 16px;
   color: var(--text-primary);
+  transition: opacity 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s, width 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.12s;
+  opacity: 1;
+  width: auto;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.main-sidebar.collapsed .brand-text {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
 }
 
 /* Sidebar submenu styles */
