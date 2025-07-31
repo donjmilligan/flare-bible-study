@@ -1,129 +1,17 @@
-*{
-  margin: 0;
-}
-
-#root {
-  width: 100%;
+* {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-.App {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-.dashboard-content {
-  padding: 20px;
-  text-align: left;
-  max-width: 100%;
-}
-
-.dashboard-content h1 {
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+  line-height: 1.6;
   color: #333;
-  margin-bottom: 10px;
-  font-size: 2rem;
-  font-weight: 600;
+  background-color: #f8f9fa;
 }
 
-.dashboard-content p {
-  color: #666;
-  margin-bottom: 30px;
-  font-size: 1.1rem;
-}
-
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-  margin-bottom: 30px;
-}
-
-.stat-card {
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #667eea;
-  transition: transform 0.3s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-}
-
-.stat-card h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 1rem;
-}
-
-.stat-value {
-  font-size: 1.8rem;
-  font-weight: bold;
-  color: #667eea;
-  margin-bottom: 4px;
-}
-
-.stat-description {
-  color: #666;
-  font-size: 0.85rem;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-  
-  .dashboard-content {
-    padding: 15px;
-  }
-  
-  .dashboard-content h1 {
-    font-size: 1.5rem;
-  }
-  
-  .stat-card {
-    padding: 12px;
-  }
+.app {
+  height: 100vh;
+  /* overflow: hidden; */
 }
