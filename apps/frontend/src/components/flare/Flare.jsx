@@ -177,6 +177,7 @@ const Flare = () => {
   const arcSvgRef = useRef();
   // Add a state for the currently clicked arc's chapters
   const [clickedArcChapters, setClickedArcChapters] = useState([]);
+  const [selectedArcInfo, setSelectedArcInfo] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [textSize, setTextSize] = useState(12);
   const mediumWidth = 900;
@@ -273,6 +274,29 @@ const Flare = () => {
       })
       .catch((err) => setError("Failed to fetch books: " + err.message));
   }, [translation]);
+
+  // Set default Sabbath selection when paradoxes are loaded
+  useEffect(() => {
+    if (paradoxes.length > 0 && !selectedArcInfo) {
+      const sabbathParadox = paradoxes.find((p) =>
+        (p.description || p.desc || "").toLowerCase().includes("sabbath"),
+      );
+
+      if (sabbathParadox) {
+        const sabbathRefs = flatRefs(sabbathParadox.refs);
+        setClickedArcChapters(sabbathRefs);
+        setSelectedArcInfo({
+          description:
+            sabbathParadox.description ||
+            sabbathParadox.desc ||
+            "The Seventh Day Sabbath",
+          chapters: sabbathRefs,
+          paradoxId: sabbathParadox.id || "sabbath",
+        });
+      }
+    }
+  }, [paradoxes, selectedArcInfo]);
+
   useEffect(() => {
     fetch(`${API_BASE}/paradoxes`)
       .then((res) => res.json())
@@ -714,13 +738,20 @@ const Flare = () => {
       .on("click", function (event, d) {
         const linkedChapters = flatRefs(d.refs);
         setClickedArcChapters(linkedChapters);
+        setSelectedArcInfo({
+          description: d.desc || d.group || "Paradox",
+          chapters: linkedChapters,
+          paradoxId: d.paradoxId,
+        });
         event.stopPropagation();
       });
 
     // Clear chapters when clicking outside the chart
     d3.select("body").on("click.dashboard-clear", function (event) {
       if (!event.target.closest("#bible-chart")) {
-        setClickedArcChapters([]);
+        // Don't clear the selection - keep the current selection visible
+        // setClickedArcChapters([]);
+        // setSelectedArcInfo(null);
       }
     });
 
@@ -980,20 +1011,125 @@ const Flare = () => {
           />
         </div>
       </div>
-      <div
-        style={{
-          minHeight: 100,
-          margin: "0 auto",
-          maxWidth: 1100,
-          textAlign: "center",
-          fontSize: 15,
-          color: "#444",
-        }}
-      >
-        {clickedArcChapters.length > 0 && (
-          <span>Linked chapters: {clickedArcChapters.join(", ")}</span>
-        )}
-      </div>
+      {(() => {
+        // Always show Sabbath if no selection, or show selected arc info
+        if (selectedArcInfo) {
+          return selectedArcInfo;
+        } else if (paradoxes.length > 0) {
+          const sabbathParadox = paradoxes.find((p) =>
+            (p.description || p.desc || "").toLowerCase().includes("sabbath"),
+          );
+          if (sabbathParadox) {
+            const sabbathRefs = flatRefs(sabbathParadox.refs);
+            return {
+              description:
+                sabbathParadox.description ||
+                sabbathParadox.desc ||
+                "The Seventh Day Sabbath",
+              chapters: sabbathRefs,
+              paradoxId: sabbathParadox.id || "sabbath",
+            };
+          }
+        }
+        return null;
+      })() && (
+        <div
+          style={{
+            minHeight: 120,
+            margin: "20px auto",
+            padding: "20px",
+            width: "100%",
+            background: "#fff",
+            borderRadius: "5px",
+            border: "1px solid #e9ecef",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          <div style={{ textAlign: "center", marginBottom: "15px" }}>
+            <h3
+              style={{
+                fontSize: "18px",
+                color: "#333",
+                margin: "0 0 10px 0",
+                fontWeight: "600",
+              }}
+            >
+              Selected Paradox:{" "}
+              {(() => {
+                // Always show Sabbath if no selection, or show selected arc info
+                if (selectedArcInfo) {
+                  return selectedArcInfo.description;
+                } else if (paradoxes.length > 0) {
+                  const sabbathParadox = paradoxes.find((p) =>
+                    (p.description || p.desc || "")
+                      .toLowerCase()
+                      .includes("sabbath"),
+                  );
+                  if (sabbathParadox) {
+                    return (
+                      sabbathParadox.description ||
+                      sabbathParadox.desc ||
+                      "The Seventh Day Sabbath"
+                    );
+                  }
+                }
+                return "";
+              })()}
+            </h3>
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#666",
+                margin: "0",
+                fontStyle: "italic",
+              }}
+            >
+              Click any arc above to view different chapters
+            </p>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px",
+              justifyContent: "center",
+              padding: "10px",
+            }}
+          >
+            {(() => {
+              // Always show Sabbath if no selection, or show selected arc info
+              if (selectedArcInfo) {
+                return selectedArcInfo.chapters;
+              } else if (paradoxes.length > 0) {
+                const sabbathParadox = paradoxes.find((p) =>
+                  (p.description || p.desc || "")
+                    .toLowerCase()
+                    .includes("sabbath"),
+                );
+                if (sabbathParadox) {
+                  return flatRefs(sabbathParadox.refs);
+                }
+              }
+              return [];
+            })().map((chapter, index) => (
+              <span
+                key={index}
+                style={{
+                  background: "#1D84B2",
+                  color: "white",
+                  padding: "6px 12px",
+                  borderRadius: "20px",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                }}
+              >
+                {chapter}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
