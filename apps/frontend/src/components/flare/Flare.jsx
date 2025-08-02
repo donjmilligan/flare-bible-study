@@ -677,6 +677,45 @@ const Flare = () => {
             : "#1D84B2",
         );
         hideOverlay();
+      })
+      .on("click", function (event, d) {
+        // Convert book name to BibleHub format
+        let bookName = d.book.toLowerCase().replace(/\s+/g, "_");
+        const chapterNum = d.chapterNum;
+
+        // Handle special cases for BibleHub URL format
+        const bookNameMap = {
+          "1_kings": "1_kings",
+          "2_kings": "2_kings",
+          "1_samuel": "1_samuel",
+          "2_samuel": "2_samuel",
+          "1_chronicles": "1_chronicles",
+          "2_chronicles": "2_chronicles",
+          "1_corinthians": "1_corinthians",
+          "2_corinthians": "2_corinthians",
+          "1_thessalonians": "1_thessalonians",
+          "2_thessalonians": "2_thessalonians",
+          "1_timothy": "1_timothy",
+          "2_timothy": "2_timothy",
+          "1_peter": "1_peter",
+          "2_peter": "2_peter",
+          "1_john": "1_john",
+          "2_john": "2_john",
+          "3_john": "3_john",
+          song_of_solomon: "song_of_solomon",
+          song_of_songs: "song_of_solomon",
+        };
+
+        // Use mapped name if available, otherwise use the converted name
+        const finalBookName = bookNameMap[bookName] || bookName;
+
+        // Create BibleHub URL
+        const bibleHubUrl = `https://biblehub.com/kjv/${finalBookName}/${chapterNum}.htm`;
+
+        // Open in new tab
+        window.open(bibleHubUrl, "_blank");
+
+        event.stopPropagation();
       });
 
     // Draw arcs (above bars, per chapter, elliptical style like flare.js, always above rects)
