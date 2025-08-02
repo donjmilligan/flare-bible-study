@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import * as d3 from "d3";
 import "./Flare.css";
 
@@ -75,19 +81,14 @@ function extractBookAndChapter(ref) {
   if (parts && parts[1] && parts[2]) {
     return `${parts[1].replace(/\s+/g, " ").trim()} ${parts[2]}`;
   }
-
-  // Fallback patterns for edge cases
-  // Try to match e.g. "Genesis 2:1-3" or "Genesis 2:1"
   const match = (ref || "").match(/^([1-3]?\s*[A-Za-z ]+)\s+(\d+):/);
   if (match) {
     return `${match[1].replace(/\s+/g, " ").trim()} ${match[2]}`;
   }
-  // Try to match "Genesis 2"
   const match2 = (ref || "").match(/^([1-3]?\s*[A-Za-z ]+)\s+(\d+)/);
   if (match2) {
     return `${match2[1].replace(/\s+/g, " ").trim()} ${match2[2]}`;
   }
-  // Try to match "Genesis2:1" (no space)
   const match3 = (ref || "").match(/^([1-3]?\s*[A-Za-z]+)(\d+):/);
   if (match3) {
     return `${match3[1].replace(/\s+/g, " ").trim()} ${match3[2]}`;
@@ -145,13 +146,18 @@ function flatRefs(refs) {
     // This is an object with more info, so let's pull out all the refs
     const refList = [];
     const keys = Object.keys(refs);
+    console.log("flatRefs: Processing object with keys:", keys);
     for (let i = 0; i < keys.length; i++) {
-      if (Array.isArray(refs[keys[i]])) {
-        for (let j = 0; j < refs[keys[i]].length; j++) {
-          refList.push(refs[keys[i]][j]);
+      const key = keys[i];
+      const value = refs[key];
+      console.log(`flatRefs: Processing key "${key}" with value:`, value);
+      if (Array.isArray(value)) {
+        for (let j = 0; j < value.length; j++) {
+          refList.push(value[j]);
         }
       }
     }
+    console.log("flatRefs: Final flattened refs:", refList);
     return refList;
   }
   return [];
@@ -171,8 +177,37 @@ const Flare = () => {
   const arcSvgRef = useRef();
   // Add a state for the currently clicked arc's chapters
   const [clickedArcChapters, setClickedArcChapters] = useState([]);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [textSize, setTextSize] = useState(12);
   const mediumWidth = 900;
   const mediumHeight = 400;
+
+  // Zoom control functions - same as OldTestamentJesus1
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
+  }, []);
+
+  const handleTextSize = useCallback((event) => {
+    const change = event.detail;
+    setTextSize((prev) => Math.max(8, Math.min(prev + change, 20)));
+  }, []);
+
+  // Event listeners for zoom and text size (same as OldTestamentJesus1)
+  useEffect(() => {
+    window.addEventListener("d3-zoom-in", handleZoomIn);
+    window.addEventListener("d3-zoom-out", handleZoomOut);
+    window.addEventListener("d3-text-size", handleTextSize);
+
+    return () => {
+      window.removeEventListener("d3-zoom-in", handleZoomIn);
+      window.removeEventListener("d3-zoom-out", handleZoomOut);
+      window.removeEventListener("d3-text-size", handleTextSize);
+    };
+  }, [handleZoomIn, handleZoomOut, handleTextSize]);
 
   // Fetch books and chapters on translation change
   useEffect(() => {
@@ -201,14 +236,12 @@ const Flare = () => {
                 ? allChapters[i]
                 : [];
               chaptersList.forEach((ch) => {
-                // Extract chapter number from name field (e.g., "Chapter 1" -> 1)
                 let chapterNum = 1;
                 if (ch.name) {
                   const match = ch.name.match(/Chapter\s+(\d+)/i);
                   if (match) {
                     chapterNum = parseInt(match[1]);
                   } else {
-                    // Try to extract number from any format
                     const numMatch = ch.name.match(/(\d+)/);
                     if (numMatch) {
                       chapterNum = parseInt(numMatch[1]);
@@ -240,51 +273,33 @@ const Flare = () => {
       })
       .catch((err) => setError("Failed to fetch books: " + err.message));
   }, [translation]);
-
-  // Fetch paradoxes (relationships) from API
   useEffect(() => {
     fetch(`${API_BASE}/paradoxes`)
       .then((res) => res.json())
       .then((data) => {
         console.log("Raw paradoxes data from API:", data);
         if (Array.isArray(data) && data.length > 0) {
-          setParadoxes(data);
+          const processedData = data.map((paradox) => {
+            if (typeof paradox.refs === "string") {
+              try {
+                paradox.refs = JSON.parse(paradox.refs);
+              } catch (e) {
+                console.error("Failed to parse refs for paradox:", paradox);
+              }
+            }
+            if (typeof paradox.refs === "object" && paradox.refs !== null) {
+              console.log("Paradox refs structure:", paradox.refs);
+            }
+            return paradox;
+          });
+          console.log("Processed paradoxes data:", processedData);
+          setParadoxes(processedData);
         } else {
           console.log("No paradoxes from API, using sample data for testing");
-          // Use sample data for testing if API doesn't return data
-          setParadoxes([
-            {
-              group_name: "Test",
-              description: "Test Paradox",
-              refs: ["Genesis 1", "Genesis 2", "Exodus 1"],
-              url: "",
-            },
-            {
-              group_name: "Test2",
-              description: "Another Test Paradox",
-              refs: ["Genesis 3", "Exodus 2", "Leviticus 1"],
-              url: "",
-            },
-          ]);
         }
       })
       .catch((err) => {
         console.error("Error fetching paradoxes:", err);
-        console.log("Using sample paradox data due to API error");
-        setParadoxes([
-          {
-            group_name: "Test",
-            description: "Test Paradox",
-            refs: ["Genesis 1", "Genesis 2", "Exodus 1"],
-            url: "",
-          },
-          {
-            group_name: "Test2",
-            description: "Another Test Paradox",
-            refs: ["Genesis 3", "Exodus 2", "Leviticus 1"],
-            url: "",
-          },
-        ]);
       });
   }, []);
 
@@ -340,33 +355,17 @@ const Flare = () => {
   useEffect(() => {
     if (!chapters.length || !books.length) return;
 
-    console.log(
-      "Available chapters:",
-      chapters.map((ch) => ch.name),
-    );
-    console.log(
-      "Available books:",
-      books.map((b) => b.short_name),
-    );
-
     // Prepare arc data (between chapters based on paradoxes)
     const arcLinks = [];
-    console.log("Creating arcs from", filteredParadoxes.length, "paradoxes");
-
     filteredParadoxes.forEach((par, pi) => {
       // Use the improved flatRefs function to handle both array and object structures
       const refs = flatRefs(par.refs);
-
-      console.log(`Paradox ${pi}:`, par.description || par.desc, "refs:", refs);
 
       // Get absolute chapter indices for all references in this paradox
       const chapterIndices = refs
         .map((ref) => {
           const extracted = extractBookAndChapter(ref);
           const index = getAbsoluteChapterIndex(ref, chapters);
-          console.log(
-            `Ref: "${ref}" -> extracted: "${extracted}" -> index: ${index}`,
-          );
           return index;
         })
         .filter(
@@ -379,21 +378,16 @@ const Flare = () => {
       const uniqueChapterIndexes = [...new Set(chapterIndices)].sort(
         (a, b) => a - b,
       );
+      const sortedChapters = uniqueChapterIndexes.sort((a, b) => a - b);
 
-      console.log(`Paradox ${pi} uniqueChapterIndexes:`, uniqueChapterIndexes);
-
-      // Create arcs between consecutive chapters that share this paradox (like the old implementation)
-      for (let i = 0; i < uniqueChapterIndexes.length - 1; i++) {
-        const start = uniqueChapterIndexes[i];
-        const end = uniqueChapterIndexes[i + 1];
-
-        // Re-order if start > end (like the old implementation)
-        const finalStart = start > end ? end : start;
-        const finalEnd = start > end ? start : end;
+      // Create a chain of connections: connect each chapter to the next one
+      for (let i = 0; i < sortedChapters.length - 1; i++) {
+        const start = sortedChapters[i];
+        const end = sortedChapters[i + 1];
 
         arcLinks.push({
-          source: finalStart,
-          target: finalEnd,
+          source: start,
+          target: end,
           desc: par.description || par.desc,
           group: par.group_name,
           refs: refs,
@@ -402,9 +396,63 @@ const Flare = () => {
           endVerse: refs[i + 1] || "",
         });
       }
+      if (sortedChapters.length > 2) {
+        const first = sortedChapters[0];
+        const last = sortedChapters[sortedChapters.length - 1];
+
+        arcLinks.push({
+          source: first,
+          target: last,
+          desc: par.description || par.desc,
+          group: par.group_name,
+          refs: refs,
+          paradoxId: par.id || pi,
+          startVerse: refs[0] || "",
+          endVerse: refs[refs.length - 1] || "",
+        });
+      }
     });
 
     console.log("Final arcLinks:", arcLinks);
+
+    // DEBUG: Check for Sabbath paradox at the end
+    console.log("=== SABBATH PARADOX DEBUG ===");
+    const sabbathParadox = filteredParadoxes.find((p) =>
+      (p.description || p.desc || "").toLowerCase().includes("sabbath"),
+    );
+    if (sabbathParadox) {
+      console.log(
+        "Sabbath paradox found:",
+        sabbathParadox.description || sabbathParadox.desc,
+      );
+      const sabbathRefs = flatRefs(sabbathParadox.refs);
+      console.log("Sabbath refs:", sabbathRefs);
+      console.log(
+        "Has Revelation 1:9:",
+        sabbathRefs.some((ref) => ref.includes("Revelation 1:9")),
+      );
+      console.log(
+        "Has Genesis 2:1:",
+        sabbathRefs.some((ref) => ref.includes("Genesis 2:1")),
+      );
+      console.log("Total Sabbath refs:", sabbathRefs.length);
+
+      // Check specific chapter indices
+      const revelationIndex = getAbsoluteChapterIndex(
+        "Revelation 1:9-10",
+        chapters,
+      );
+      const genesisIndex = getAbsoluteChapterIndex("Genesis 2:1-3", chapters);
+      console.log("Revelation 1 chapter index:", revelationIndex);
+      console.log("Genesis 2 chapter index:", genesisIndex);
+      console.log(
+        "Chapters between them:",
+        chapters.slice(genesisIndex, revelationIndex + 1).map((ch) => ch.name),
+      );
+    } else {
+      console.log("No Sabbath paradox found in filtered paradoxes");
+    }
+    console.log("=== END SABBATH DEBUG ===");
 
     // Add a test arc to verify rendering works
     if (arcLinks.length === 0 && chapters.length > 1) {
@@ -446,11 +494,13 @@ const Flare = () => {
     const margin = { top: 20, right: 40, bottom: 40, left: 40 };
     const barWidth = 1.2; // very thin bars
     const barHeight = 100;
-    const width =
-      Math.max(mediumWidth, chapters.length * (barWidth + 0.5)) +
-      margin.left +
-      margin.right;
-    const height = 520; // Large vertical space for arcs
+
+    // Get the actual SVG dimensions
+    const svgElement = arcSvgRef.current;
+    const svgRect = svgElement.getBoundingClientRect();
+    const width = svgRect.width || 900;
+    const height = svgRect.height || 600;
+
     const x = d3
       .scaleLinear()
       .domain([0, chapters.length - 1])
@@ -458,35 +508,22 @@ const Flare = () => {
     const maxWords = d3.max(chapters, (d) => d.wordCount || 1);
     const yBar = d3.scaleLinear().domain([0, maxWords]).range([0, barHeight]);
 
-    // Bars at the very bottom, arcs start at the top of the bars
+    // Bars at the bottom, arcs start above the bars
     const barY = height - margin.bottom - barHeight;
-    const arcBaseY = barY;
+    const arcBaseY = barY; // Position arcs very close to the bars
     const yBase = barY + barHeight;
 
     const svg = d3
       .select(arcSvgRef.current)
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", "100%")
+      .attr("height", "100%")
       .attr("viewBox", [0, 0, width, height]);
     svg.selectAll("*").remove();
-
-    // Add clipPath for main chart area
-    svg
-      .append("defs")
-      .append("clipPath")
-      .attr("id", "main-clip")
-      .append("rect")
-      .attr("x", margin.left)
-      .attr("y", margin.top)
-      .attr("width", width - margin.left - margin.right)
-      .attr("height", height - margin.top - margin.bottom);
-
-    // Arc drop shadow filter
     svg.append("defs").append("filter").attr("id", "arc-shadow").html(`
         <feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='#000' flood-opacity='0.18'/>
       `);
 
-    // Overlay for info display (small, above rect, follows mouse)
+    // Overlay for info display (follows mouse with fixed distance)
     let overlay = d3.select("#dashboard-overlay");
     if (overlay.empty()) {
       overlay = d3
@@ -498,66 +535,65 @@ const Flare = () => {
         .style("left", "0px")
         .style("width", "auto")
         .style("min-width", "0px")
-        .style("max-width", "320px") // reduced width
-        .style("height", "auto")
+        .style("max-width", "320px")
+        .style("height", "40px")
         .style("display", "none")
         .style("align-items", "center")
-        .style("justify-content", "center")
         .style("z-index", 9999)
         .style("background", "rgba(40,40,40,0.97)")
         .style("color", "#fff")
-        .style("padding", "7px 12px")
+        .style("padding", "5px 8px")
         .style("border-radius", "10px")
-        .style("font-size", "0.92rem")
+        .style("font-size", "0.6rem")
         .style("box-shadow", "0 2px 12px rgba(0,0,0,0.18)")
         .style("pointer-events", "none")
         .style("transition", "opacity 0.18s");
     }
-    let lastOverlayLeft = 0;
-    let lastOverlayTop = 0;
-    let overlayMoveAnimation = null;
-    function showOverlayAboveRect(html, rectX, rectY, rectWidth) {
-      d3.select("#dashboard-overlay").style("display", "flex");
-      d3.select("#dashboard-overlay").style("opacity", 1);
-      // Only update the text if it changed
-      if (d3.select("#dashboard-overlay").html() !== html) {
-        d3.select("#dashboard-overlay").html(html);
-      }
-      // Center overlay horizontally above the rect
-      const overlayNode = d3.select("#dashboard-overlay").node();
-      const overlayWidth = overlayNode.offsetWidth || 160;
-      const left = rectX + rectWidth / 2 - overlayWidth / 2;
-      const top = rectY - 38; // 38px above the rect
-      // Animate movement
-      if (overlayMoveAnimation) cancelAnimationFrame(overlayMoveAnimation);
-      function animateMove() {
-        lastOverlayLeft += (left - lastOverlayLeft) * 0.35;
-        lastOverlayTop += (top - lastOverlayTop) * 0.35;
-        d3.select("#dashboard-overlay")
-          .style("left", `${lastOverlayLeft}px`)
-          .style("top", `${lastOverlayTop}px`);
-        if (
-          Math.abs(lastOverlayLeft - left) > 1 ||
-          Math.abs(lastOverlayTop - top) > 1
-        ) {
-          overlayMoveAnimation = requestAnimationFrame(animateMove);
-        } else {
-          d3.select("#dashboard-overlay")
-            .style("left", `${left}px`)
-            .style("top", `${top}px`);
-        }
-      }
-      if (isNaN(lastOverlayLeft) || isNaN(lastOverlayTop)) {
-        lastOverlayLeft = left;
-        lastOverlayTop = top;
-        d3.select("#dashboard-overlay")
-          .style("left", `${left}px`)
-          .style("top", `${top}px`);
+
+    // Fixed distance above mouse cursor
+    const TOOLTIP_DISTANCE = 30; // pixels above mouse
+
+    function showOverlayAboveMouse(html, mouseX, mouseY, isArc = false) {
+      const overlay = d3.select("#dashboard-overlay");
+      overlay.style("display", "flex");
+      overlay.style("opacity", 1);
+
+      // Apply different styles based on whether it's an arc or chapter tooltip
+      if (isArc) {
+        // Arc tooltip - smaller, compact style
+        overlay
+          .style("width", "400px")
+          .style("height", "50px")
+          .style("font-size", "0.4rem")
+          .style("padding", "6px 8px");
       } else {
-        animateMove();
+        // Chapter tooltip - larger, detailed style
+        overlay
+          .style("width", "800px")
+          .style("height", "60px")
+          .style("font-size", "0.6rem")
+          .style("padding", "8px 12px");
       }
+
+      // Only update the text if it changed
+      if (overlay.html() !== html) {
+        overlay.html(html);
+      }
+
+      // Position tooltip above mouse with left edge aligned
+      const overlayNode = overlay.node();
+      const overlayWidth = overlayNode.offsetWidth || (isArc ? 180 : 280);
+      const overlayHeight = overlayNode.offsetHeight || (isArc ? 40 : 70);
+
+      // Left edge of tooltip aligns with mouse cursor
+      const left = mouseX;
+      // Tooltip positioned so bottom edge is 30px above mouse cursor
+      const top = mouseY - TOOLTIP_DISTANCE - overlayHeight;
+
+      // Apply position immediately for smooth following
+      overlay.style("left", `${left}px`).style("top", `${top}px`);
     }
-    function hideOverlayAboveRect() {
+    function hideOverlay() {
       d3.select("#dashboard-overlay")
         .transition()
         .duration(120)
@@ -566,46 +602,19 @@ const Flare = () => {
           d3.select(this).style("display", "none");
         });
     }
-    // Hide overlay only when mouse leaves the chart area
-    d3.select("#bible-chart").on("mouseleave", function () {
-      // This timeout is no longer needed as overlay follows mouse
-      // overlayHideTimeout = setTimeout(hideOverlaySmooth, 200);
-    });
+    d3.select("#bible-chart").on("mouseleave", function () {});
     d3.select("#bible-chart").on("mouseenter", function () {
       // clearTimeout(overlayHideTimeout);
     });
-
-    // D3 rendering for horizontal arc diagram (bars per chapter, thin bars, arcs above)
-    // Remove vertical centering: draw from the top
     const chartGroup = svg
       .append("g")
-      .attr("class", "zoom-group")
-      .attr("clip-path", "url(#main-clip)")
+      // .attr("clip-path", "url(#main-clip)") // Remove clip path to prevent clipping
       .attr("transform", `translate(0,0)`); // No vertical centering
 
     // Debug logs
     console.log("SVG height:", height);
     console.log("barY (bars start):", barY);
     console.log("arcBaseY (arcs start):", arcBaseY);
-
-    // Add zoom in/out (scale only, no pan), centered on the middle of the SVG
-    svg.call(
-      d3
-        .zoom()
-        .scaleExtent([0.5, 8])
-        .on("zoom", (event) => {
-          const t = event.transform;
-          // Center scaling on the middle of the SVG
-          const centerX = width / 2;
-          const centerY = height / 2;
-          chartGroup.attr(
-            "transform",
-            `translate(${centerX},${centerY}) scale(${t.k}) translate(${-centerX},${-centerY + initialY})`,
-          );
-        }),
-    );
-
-    // Draw chapter rects (bars) - bars point downward from the top
     chartGroup
       .append("g")
       .selectAll("rect")
@@ -629,13 +638,11 @@ const Flare = () => {
       .attr("cursor", "pointer")
       .on("mousemove", function (event, d) {
         d3.select(this).attr("fill", "#b3e5fc");
-        // Get rect position in viewport
-        const rect = this.getBoundingClientRect();
-        showOverlayAboveRect(
+        showOverlayAboveMouse(
           `<div style='font-size:1.08rem;font-weight:700;margin-bottom:0.2rem;'>${d.section ? d.section + " - " : ""}${d.book} - Chapter ${d.chapterNum}</div><div style='font-size:0.92rem;opacity:0.8;'>${d.verseCount} verses, ${d.wordCount || 0} words, ${d.charCount || 0} characters</div>`,
-          rect.left + window.scrollX,
-          rect.top + window.scrollY,
-          rect.width,
+          event.clientX,
+          event.clientY,
+          false, // Chapter tooltip
         );
       })
       .on("mouseleave", function (event, d) {
@@ -645,7 +652,7 @@ const Flare = () => {
             ? "#ffe082"
             : "#1D84B2",
         );
-        hideOverlayAboveRect();
+        hideOverlay();
       });
 
     // Draw arcs (above bars, per chapter, elliptical style like flare.js, always above rects)
@@ -653,7 +660,7 @@ const Flare = () => {
       .append("g")
       .attr("fill", "none")
       .attr("stroke-opacity", 0.85)
-      .attr("stroke-width", 3.5)
+      .attr("stroke-width", 2)
       .attr("filter", "url(#arc-shadow)");
 
     console.log("Drawing", arcLinks.length, "arcs");
@@ -666,28 +673,43 @@ const Flare = () => {
       .attr("d", (d) => {
         const x1 = x(d.source) + barWidth / 2;
         const x2 = x(d.target) + barWidth / 2;
-        const r = Math.abs(x2 - x1) / 2;
-        const largeArcFlag = Math.abs(x2 - x1) > width / 2 ? 1 : 0;
-        // Use arcBaseY for both endpoints so arcs are always above bars
-        return `M${x1},${arcBaseY} A${r},${r} 0 ${largeArcFlag},0 ${x2},${arcBaseY}`;
+        const distance = Math.abs(x2 - x1);
+        // Create smaller arcs closer to the bars
+        const radius = Math.min(distance / 2, 20); // Limit radius to 20px max
+        const y1 = arcBaseY;
+        const y2 = arcBaseY;
+        // Use elliptical arc to create perfect semicircle
+        const largeArcFlag = 0; // Always 0 for semicircle
+        const sweepFlag = 1; // Always 1 for upward arc
+        return `M${x1},${y1} A${radius},${radius} 0 ${largeArcFlag},${sweepFlag} ${x2},${y2}`;
       })
       .attr("cursor", "pointer")
       .on("mouseover", function (event, d) {
-        d3.select(this).attr("stroke-width", 6);
+        // Change color of all arcs in the same paradox
+        arcGroup.selectAll("path").each(function (arcData) {
+          if (arcData.paradoxId === d.paradoxId) {
+            d3.select(this)
+              .attr("stroke", "#ff6b35") // Orange color for hover
+              .attr("stroke-width", 3);
+          }
+        });
+
         // Show only the paradox description in the tooltip
-        const x1 = x(d.source) + barWidth / 2;
-        const x2 = x(d.target) + barWidth / 2;
-        const arcMidX = (x1 + x2) / 2;
-        showOverlayAboveRect(
+        showOverlayAboveMouse(
           `<div style='font-size:1.08rem;font-weight:700;'>${d.desc || d.group || "Paradox"}</div>`,
-          arcMidX,
-          arcBaseY - 30,
-          180,
+          event.clientX,
+          event.clientY,
+          true, // Arc tooltip
         );
       })
       .on("mouseout", function () {
-        d3.select(this).attr("stroke-width", 3.5);
-        hideOverlayAboveRect();
+        // Reset all arcs to their original colors
+        arcGroup.selectAll("path").each(function (arcData) {
+          d3.select(this)
+            .attr("stroke", getArcColor(color, arcData.source, arcData.target))
+            .attr("stroke-width", 2);
+        });
+        hideOverlay();
       })
       .on("click", function (event, d) {
         const linkedChapters = flatRefs(d.refs);
@@ -704,6 +726,26 @@ const Flare = () => {
 
     return () => {};
   }, [filteredParadoxes, color, books, selectedBook, chapters, translation]);
+
+  // Separate effect for zoom changes - apply to entire SVG like OldTestamentJesus1
+  useLayoutEffect(() => {
+    if (!arcSvgRef.current) return;
+
+    requestAnimationFrame(() => {
+      const svg = d3.select(arcSvgRef.current);
+      svg.style("transform", `scale(${zoomLevel})`);
+    });
+  }, [zoomLevel]);
+
+  // Separate effect for text size changes
+  useLayoutEffect(() => {
+    if (!arcSvgRef.current) return;
+
+    requestAnimationFrame(() => {
+      const svg = d3.select(arcSvgRef.current);
+      svg.selectAll("text").style("font-size", `${textSize}px`);
+    });
+  }, [textSize]);
 
   // Pie chart for books in Old vs New Testament
   useEffect(() => {
@@ -831,7 +873,13 @@ const Flare = () => {
       {error && <div style={{ color: "red" }}>{error}</div>}
       <div
         className="card"
-        style={{ margin: "0 auto", maxWidth: 1100, marginBottom: 32 }}
+        style={{
+          margin: "0 auto",
+          maxWidth: 1100,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "80vh",
+        }}
       >
         <div
           className="card-header"
@@ -904,136 +952,48 @@ const Flare = () => {
           id="bible-chart"
           className="card-body d-flex justify-content-center position-relative"
           style={{
-            minHeight: 420,
-            maxHeight: 420,
-            overflow: "hidden",
-            background: "#fafbfc",
+            flex: 1,
+            minHeight: 600,
+            overflow: "visible",
+            background: "#fff",
             borderRadius: 12,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            padding: 0,
           }}
         >
           <svg
             ref={arcSvgRef}
             style={{
-              width: Math.max(mediumWidth, chapters.length * 20),
-              height: mediumHeight,
+              width: "100%",
+              height: "100%",
               maxWidth: "100%",
               background: "#fff",
-              border: "1px solid #eee",
-              borderRadius: 8,
-              maxHeight: 420,
-              overflow: "hidden",
+              display: "block",
+              position: "absolute",
+              top: 0,
+              left: 0,
             }}
           />
         </div>
       </div>
       <div
         style={{
-          minHeight: 32,
+          minHeight: 100,
           margin: "0 auto",
           maxWidth: 1100,
           textAlign: "center",
           fontSize: 15,
           color: "#444",
-          marginTop: 12,
         }}
       >
         {clickedArcChapters.length > 0 && (
           <span>Linked chapters: {clickedArcChapters.join(", ")}</span>
         )}
       </div>
-      {/* Pie chart and Treemap for books in Old vs New Testament */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: "center",
-          gap: 32,
-          margin: "32px 0 0 0",
-        }}
-      >
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-            padding: 24,
-            width: 280,
-            minWidth: 240,
-            maxWidth: 280,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>
-            Books in Old vs New Testament
-          </div>
-          <svg id="pie-chart" />
-          <div
-            id="pie-legend"
-            style={{
-              marginTop: 8,
-              fontSize: 15,
-              display: "flex",
-              gap: 18,
-              justifyContent: "center",
-            }}
-          ></div>
-        </div>
-        <div
-          style={{
-            background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-            padding: 24,
-            width: 280,
-            minWidth: 240,
-            maxWidth: 280,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            position: "relative",
-          }}
-        >
-          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>
-            Book Size Treemap (by words)
-          </div>
-          <svg id="treemap-chart" />
-          <div
-            id="treemap-tooltip"
-            style={{
-              display: "none",
-              position: "fixed",
-              pointerEvents: "none",
-              background: "rgba(40,40,40,0.97)",
-              color: "#fff",
-              padding: "7px 12px",
-              borderRadius: 8,
-              fontSize: 14,
-              zIndex: 9999,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
-            }}
-          ></div>
-        </div>
-      </div>
-      <style>{`
-        .d3-tooltip {
-          font-size: 1rem;
-          z-index: 1000;
-        }
-        .form-control, .book-select, .type-select {
-          min-width: 180px;
-          padding: 8px 12px;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          font-size: 1rem;
-        }
-        .card { box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-      `}</style>
     </div>
   );
 };
