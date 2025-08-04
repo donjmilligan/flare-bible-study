@@ -6,7 +6,9 @@ import React, {
   useLayoutEffect,
 } from "react";
 import * as d3 from "d3";
+
 import "./Flare.css";
+import BibleTextDisplay from "./BibleTextDisplay";
 
 const API_BASE = "http://localhost:3001/api/bible";
 
@@ -76,28 +78,41 @@ function normalizeRef(ref) {
 }
 
 function extractBookAndChapter(ref) {
+  console.log(`extractBookAndChapter: processing "${ref}"`);
+
   // More robust regex pattern similar to the old implementation
   const parts = /^(\d?\s?[a-z]+)[\s.:]*(\d*):?(\d*)[-]?(\d*)/i.exec(ref);
   if (parts && parts[1] && parts[2]) {
-    return `${parts[1].replace(/\s+/g, " ").trim()} ${parts[2]}`;
+    const result = `${parts[1].replace(/\s+/g, " ").trim()} ${parts[2]}`;
+    console.log(`extractBookAndChapter: regex1 match -> "${result}"`);
+    return result;
   }
   const match = (ref || "").match(/^([1-3]?\s*[A-Za-z ]+)\s+(\d+):/);
   if (match) {
-    return `${match[1].replace(/\s+/g, " ").trim()} ${match[2]}`;
+    const result = `${match[1].replace(/\s+/g, " ").trim()} ${match[2]}`;
+    console.log(`extractBookAndChapter: regex2 match -> "${result}"`);
+    return result;
   }
   const match2 = (ref || "").match(/^([1-3]?\s*[A-Za-z ]+)\s+(\d+)/);
   if (match2) {
-    return `${match2[1].replace(/\s+/g, " ").trim()} ${match2[2]}`;
+    const result = `${match2[1].replace(/\s+/g, " ").trim()} ${match2[2]}`;
+    console.log(`extractBookAndChapter: regex3 match -> "${result}"`);
+    return result;
   }
   const match3 = (ref || "").match(/^([1-3]?\s*[A-Za-z]+)(\d+):/);
   if (match3) {
-    return `${match3[1].replace(/\s+/g, " ").trim()} ${match3[2]}`;
+    const result = `${match3[1].replace(/\s+/g, " ").trim()} ${match3[2]}`;
+    console.log(`extractBookAndChapter: regex4 match -> "${result}"`);
+    return result;
   }
   // Try to match "Genesis2" (no space)
   const match4 = (ref || "").match(/^([1-3]?\s*[A-Za-z]+)(\d+)/);
   if (match4) {
-    return `${match4[1].replace(/\s+/g, " ").trim()} ${match4[2]}`;
+    const result = `${match4[1].replace(/\s+/g, " ").trim()} ${match4[2]}`;
+    console.log(`extractBookAndChapter: regex5 match -> "${result}"`);
+    return result;
   }
+  console.log(`extractBookAndChapter: no match for "${ref}"`);
   return null;
 }
 
@@ -183,6 +198,29 @@ const Flare = () => {
   const mediumWidth = 900;
   const mediumHeight = 400;
 
+  // Add editability state variables
+  const [contextMenu, setContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    paradox: null,
+  });
+  const [editParadoxForm, setEditParadoxForm] = useState({
+    visible: false,
+    paradox: null,
+    description: "",
+    groupName: "",
+    refs: {},
+  });
+  const [editingRefs, setEditingRefs] = useState({});
+  const [newRefKey, setNewRefKey] = useState("");
+  const [newRefValue, setNewRefValue] = useState("");
+
+  // Add new state for delete, rename functionality
+  const [editingNode, setEditingNode] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [selectedParadox, setSelectedParadox] = useState(null);
+
   // Zoom control functions - same as OldTestamentJesus1
   const handleZoomIn = useCallback(() => {
     setZoomLevel((prev) => Math.min(prev + 0.1, 2));
@@ -209,6 +247,27 @@ const Flare = () => {
       window.removeEventListener("d3-text-size", handleTextSize);
     };
   }, [handleZoomIn, handleZoomOut, handleTextSize]);
+
+  // Hide context menu on click elsewhere
+  useEffect(() => {
+    if (!contextMenu.visible) return;
+    const handleClick = (event) => {
+      // Don't close if clicking on the context menu itself
+      if (event.target.closest(".paradox-context-menu")) return;
+      setContextMenu({ ...contextMenu, visible: false });
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setContextMenu({ ...contextMenu, visible: false });
+      }
+    };
+    window.addEventListener("click", handleClick);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("click", handleClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [contextMenu]);
 
   // Fetch books and chapters on translation change
   useEffect(() => {
@@ -297,6 +356,7 @@ const Flare = () => {
     }
   }, [paradoxes, selectedArcInfo]);
 
+  // Fetch paradoxes data
   useEffect(() => {
     fetch(`${API_BASE}/paradoxes`)
       .then((res) => res.json())
@@ -320,12 +380,245 @@ const Flare = () => {
           setParadoxes(processedData);
         } else {
           console.log("No paradoxes from API, using sample data for testing");
+          // Add sample data for testing
+          const sampleData = [
+            {
+              id: 1,
+              description: "The Seventh Day Sabbath",
+              group_name: "sab",
+              refs: {
+                "God is Lord of the Sabbath, it is a sign of his people, all people.":
+                  [
+                    "Mark 2:27",
+                    "Luke 6:1-5",
+                    "Matthew 12:1-8",
+                    "Revelation 1:9-10",
+                    "Genesis 2:1-3",
+                    "Exodus 31:13",
+                    "Isaiah 56:1-8",
+                    "Ezekiel 20:12",
+                    "Acts 13:42-44",
+                    "John 14:15-24",
+                  ],
+                "The First Angels Message is regarding the Sabbath. It says worship him as creator, and he created the seventh day Sabbath for this purpose.":
+                  ["Revelation 14:6-7", "Hebrews 4:9"],
+              },
+            },
+          ];
+          setParadoxes(sampleData);
         }
       })
       .catch((err) => {
         console.error("Error fetching paradoxes:", err);
+        // Add sample data on error
+        const sampleData = [
+          {
+            id: 1,
+            description: "The Seventh Day Sabbath",
+            group_name: "sab",
+            refs: {
+              "God is Lord of the Sabbath, it is a sign of his people, all people.":
+                [
+                  "Mark 2:27",
+                  "Luke 6:1-5",
+                  "Matthew 12:1-8",
+                  "Revelation 1:9-10",
+                  "Genesis 2:1-3",
+                  "Exodus 31:13",
+                  "Isaiah 56:1-8",
+                  "Ezekiel 20:12",
+                  "Acts 13:42-44",
+                  "John 14:15-24",
+                ],
+              "The First Angels Message is regarding the Sabbath. It says worship him as creator, and he created the seventh day Sabbath for this purpose.":
+                ["Revelation 14:6-7", "Hebrews 4:9"],
+            },
+          },
+        ];
+        setParadoxes(sampleData);
       });
   }, []);
+
+  // Edit paradox handlers
+  const handleEditParadox = (paradox) => {
+    // Handle both array and object formats for refs
+    let refsToEdit = {};
+
+    if (Array.isArray(paradox.refs)) {
+      // Convert array format to object format for editing
+      refsToEdit = {
+        References: paradox.refs,
+      };
+    } else if (typeof paradox.refs === "object" && paradox.refs !== null) {
+      // Already in object format
+      refsToEdit = paradox.refs;
+    }
+
+    setEditParadoxForm({
+      visible: true,
+      paradox: paradox,
+      description: paradox.description || paradox.desc || "",
+      groupName: paradox.group_name || "",
+      refs: refsToEdit,
+    });
+    setEditingRefs(refsToEdit);
+    setContextMenu({ ...contextMenu, visible: false });
+  };
+
+  const handleEditParadoxSubmit = async () => {
+    if (!editParadoxForm.paradox) return;
+
+    try {
+      // Convert refs back to original format if needed
+      let refsToSave = editingRefs;
+
+      // If the original was an array and we only have one key called "References",
+      // convert back to array format
+      if (
+        Array.isArray(editParadoxForm.paradox.refs) &&
+        Object.keys(editingRefs).length === 1 &&
+        editingRefs["References"]
+      ) {
+        refsToSave = editingRefs["References"];
+      }
+
+      // Update the paradox via API
+      await fetch(`${API_BASE}/paradoxes/${editParadoxForm.paradox.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: editParadoxForm.description,
+          group_name: editParadoxForm.groupName,
+          refs: refsToSave,
+        }),
+      });
+
+      // Refresh paradoxes data
+      const response = await fetch(`${API_BASE}/paradoxes`);
+      const data = await response.json();
+      setParadoxes(data);
+
+      setEditParadoxForm({
+        visible: false,
+        paradox: null,
+        description: "",
+        groupName: "",
+        refs: {},
+      });
+      setEditingRefs({});
+    } catch (error) {
+      console.error("Error updating paradox:", error);
+      alert("Failed to update paradox. Please try again.");
+    }
+  };
+
+  const handleEditParadoxCancel = () => {
+    setEditParadoxForm({
+      visible: false,
+      paradox: null,
+      description: "",
+      groupName: "",
+      refs: {},
+    });
+    setEditingRefs({});
+  };
+
+  const handleAddRefKey = () => {
+    if (newRefKey.trim() && newRefValue.trim()) {
+      setEditingRefs({
+        ...editingRefs,
+        [newRefKey.trim()]: [newRefValue.trim()],
+      });
+      setNewRefKey("");
+      setNewRefValue("");
+    }
+  };
+
+  const handleRemoveRefKey = (key) => {
+    const newRefs = { ...editingRefs };
+    delete newRefs[key];
+    setEditingRefs(newRefs);
+  };
+
+  const handleAddRefToKey = (key, ref) => {
+    if (ref.trim()) {
+      setEditingRefs({
+        ...editingRefs,
+        [key]: [...(editingRefs[key] || []), ref.trim()],
+      });
+    }
+  };
+
+  const handleRemoveRefFromKey = (key, refIndex) => {
+    setEditingRefs({
+      ...editingRefs,
+      [key]: editingRefs[key].filter((_, index) => index !== refIndex),
+    });
+  };
+
+  // Add handlers for insert, delete, rename functionality
+  const handleRename = (paradox) => {
+    setEditName(paradox.description || "");
+    setEditingNode(paradox);
+    setContextMenu({ ...contextMenu, visible: false });
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!editingNode || !editName.trim()) return;
+
+    try {
+      // Update the paradox description via API
+      await fetch(`${API_BASE}/paradoxes/${editingNode.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: editName.trim(),
+          group_name: editingNode.group_name || "",
+          refs: editingNode.refs || {},
+        }),
+      });
+
+      // Refresh paradoxes data
+      const response = await fetch(`${API_BASE}/paradoxes`);
+      const data = await response.json();
+      setParadoxes(data);
+
+      setEditingNode(null);
+      setEditName("");
+    } catch (error) {
+      console.error("Error renaming paradox:", error);
+      alert("Failed to rename paradox. Please try again.");
+    }
+  };
+
+  const handleRenameCancel = () => {
+    setEditingNode(null);
+    setEditName("");
+  };
+
+  const handleDelete = async (paradox) => {
+    if (!window.confirm(`Delete paradox: ${paradox.description}?`)) return;
+
+    try {
+      await fetch(`${API_BASE}/paradoxes/${paradox.id}`, {
+        method: "DELETE",
+      });
+      setContextMenu({ ...contextMenu, visible: false });
+
+      // Refresh paradoxes data
+      const response = await fetch(`${API_BASE}/paradoxes`);
+      const data = await response.json();
+      setParadoxes(data);
+    } catch (error) {
+      console.error("Error deleting paradox:", error);
+      alert("Failed to delete paradox. Please try again.");
+    }
+  };
+
+  const handleSelectParadox = (paradox) => {
+    setSelectedParadox(paradox);
+    setContextMenu({ ...contextMenu, visible: false });
+  };
 
   // Filtering logic
   const filteredParadoxes = paradoxes.filter((par) => {
@@ -379,17 +672,30 @@ const Flare = () => {
   useEffect(() => {
     if (!chapters.length || !books.length) return;
 
+    console.log("=== ARC CREATION DEBUG ===");
+    console.log("Chapters available:", chapters.length);
+    console.log("Books available:", books.length);
+    console.log("Filtered paradoxes:", filteredParadoxes.length);
+    console.log("All paradoxes:", paradoxes.length);
+
     // Prepare arc data (between chapters based on paradoxes)
     const arcLinks = [];
     filteredParadoxes.forEach((par, pi) => {
+      console.log(`Processing paradox ${pi}:`, par.description);
+      console.log("Paradox refs:", par.refs);
+
       // Use the improved flatRefs function to handle both array and object structures
       const refs = flatRefs(par.refs);
+      console.log("Flattened refs:", refs);
 
       // Get absolute chapter indices for all references in this paradox
       const chapterIndices = refs
         .map((ref) => {
           const extracted = extractBookAndChapter(ref);
           const index = getAbsoluteChapterIndex(ref, chapters);
+          console.log(
+            `Ref: "${ref}" -> extracted: "${extracted}" -> index: ${index}`,
+          );
           return index;
         })
         .filter(
@@ -403,6 +709,8 @@ const Flare = () => {
         (a, b) => a - b,
       );
       const sortedChapters = uniqueChapterIndexes.sort((a, b) => a - b);
+
+      console.log(`Paradox ${pi} sortedChapters:`, sortedChapters);
 
       // Create a chain of connections: connect each chapter to the next one
       for (let i = 0; i < sortedChapters.length - 1; i++) {
@@ -438,6 +746,20 @@ const Flare = () => {
     });
 
     console.log("Final arcLinks:", arcLinks);
+    console.log("=== END ARC CREATION DEBUG ===");
+
+    // DEBUG: Show available chapters
+    console.log("=== CHAPTERS DEBUG ===");
+    console.log(
+      "First 10 chapters:",
+      chapters.slice(0, 10).map((ch) => ch.name),
+    );
+    console.log(
+      "Last 10 chapters:",
+      chapters.slice(-10).map((ch) => ch.name),
+    );
+    console.log("Total chapters:", chapters.length);
+    console.log("=== END CHAPTERS DEBUG ===");
 
     // DEBUG: Check for Sabbath paradox at the end
     console.log("=== SABBATH PARADOX DEBUG ===");
@@ -593,10 +915,10 @@ const Flare = () => {
       } else {
         // Chapter tooltip - larger, detailed style
         overlay
-          .style("width", "800px")
-          .style("height", "60px")
-          .style("font-size", "0.6rem")
-          .style("padding", "8px 12px");
+          .style("width", "1200px")
+          .style("height", "80px")
+          .style("font-size", "0.8rem")
+          .style("padding", "12px 16px");
       }
 
       // Only update the text if it changed
@@ -606,8 +928,8 @@ const Flare = () => {
 
       // Position tooltip above mouse with left edge aligned
       const overlayNode = overlay.node();
-      const overlayWidth = overlayNode.offsetWidth || (isArc ? 180 : 280);
-      const overlayHeight = overlayNode.offsetHeight || (isArc ? 40 : 70);
+      const overlayWidth = overlayNode.offsetWidth || (isArc ? 180 : 400);
+      const overlayHeight = overlayNode.offsetHeight || (isArc ? 40 : 80);
 
       // Left edge of tooltip aligns with mouse cursor
       const left = mouseX;
@@ -789,6 +1111,55 @@ const Flare = () => {
           paradoxId: d.paradoxId,
         });
         event.stopPropagation();
+      })
+      .on("contextmenu", function (event, d) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Find the paradox data for this arc
+        // Try to find by ID first, then by description, then by index
+        let paradox = filteredParadoxes.find((p) => p.id === d.paradoxId);
+        if (!paradox) {
+          paradox = filteredParadoxes.find((p) => p.description === d.desc);
+        }
+        if (!paradox && typeof d.paradoxId === "number") {
+          // If paradoxId is a number (index), try to find by index
+          paradox = filteredParadoxes[d.paradoxId];
+        }
+
+        if (paradox) {
+          // Get the SVG container's bounding rect
+          const svgContainer = arcSvgRef.current.closest("#bible-chart");
+          const containerRect = svgContainer.getBoundingClientRect();
+
+          // Calculate position relative to the container
+          let x = event.clientX - containerRect.left;
+          let y = event.clientY - containerRect.top;
+
+          // Context menu dimensions (approximate)
+          const menuWidth = 200;
+          const menuHeight = 40;
+
+          // Adjust x position if menu would go off the right edge
+          if (x + menuWidth > containerRect.width) {
+            x = x - menuWidth;
+          }
+
+          // Position menu just above the cursor (closer to diagram)
+          y = y - 10;
+
+          // Adjust y position if menu would go off the top edge
+          if (y < 0) {
+            y = event.clientY - containerRect.top + 10; // Position below cursor instead
+          }
+
+          // Ensure menu doesn't go off the left edge
+          if (x < 0) {
+            x = 0;
+          }
+
+          setContextMenu({ visible: true, x: x, y: y, paradox: paradox });
+        }
       });
 
     // Clear chapters when clicking outside the chart
@@ -1475,6 +1846,7 @@ const Flare = () => {
           </div>
         </div>
       )}
+      <BibleTextDisplay />
 
       {/* Additional Tips and Information Grid */}
       <div
@@ -1929,6 +2301,495 @@ const Flare = () => {
           </div>
         </div>
       </div>
+
+      {/* Context Menu */}
+      {contextMenu.visible && (
+        <div
+          className="paradox-context-menu"
+          style={{
+            position: "absolute",
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 9999,
+            background: "#fff",
+            border: "1px solid #ccc",
+            padding: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            display: "flex",
+            flexDirection: "row",
+            gap: "8px",
+            borderRadius: "6px",
+            minWidth: "200px",
+          }}
+        >
+          <button
+            onClick={() => handleEditParadox(contextMenu.paradox)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#2196f3",
+              fontSize: "12px",
+              fontWeight: "500",
+              cursor: "pointer",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
+              textAlign: "center",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f0f8ff")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
+            title="Edit Paradox"
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => handleRename(contextMenu.paradox)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#2196f3",
+              fontSize: "12px",
+              fontWeight: "500",
+              cursor: "pointer",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
+              textAlign: "center",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f0f8ff")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
+            title="Rename Paradox"
+          >
+            Rename
+          </button>
+          <button
+            onClick={() => handleSelectParadox(contextMenu.paradox)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#4caf50",
+              fontSize: "12px",
+              fontWeight: "500",
+              cursor: "pointer",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
+              textAlign: "center",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f1f8e9")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
+            title="View Paradox Details"
+          >
+            View
+          </button>
+          <button
+            onClick={() => handleDelete(contextMenu.paradox)}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#f44336",
+              fontSize: "12px",
+              fontWeight: "500",
+              cursor: "pointer",
+              padding: "6px 10px",
+              borderRadius: "4px",
+              transition: "background-color 0.2s",
+              textAlign: "center",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = "#ffebee")}
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = "transparent")
+            }
+            title="Delete Paradox"
+          >
+            Delete
+          </button>
+        </div>
+      )}
+
+      {/* Edit Paradox Form */}
+      {editParadoxForm.visible && (
+        <div
+          className="paradox-edit-form"
+          style={{
+            position: "fixed",
+            top: "5%",
+            left: "50%",
+            transform: "translate(-50%, -5%)",
+            zIndex: 2000,
+            background: "#fff",
+            border: "1px solid #ccc",
+            padding: "20px",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+            borderRadius: "8px",
+            maxWidth: "600px",
+            maxHeight: "80vh",
+            overflow: "auto",
+          }}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleEditParadoxSubmit();
+            }}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <h3 style={{ margin: "0 0 16px 0", color: "#333" }}>
+                Edit Paradox
+              </h3>
+            </div>
+
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "4px",
+                  fontWeight: "500",
+                }}
+              >
+                Description:
+              </label>
+              <input
+                type="text"
+                value={editParadoxForm.description}
+                onChange={(e) =>
+                  setEditParadoxForm((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
+                }
+                required
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "4px",
+                  fontWeight: "500",
+                }}
+              >
+                Group Name:
+              </label>
+              <input
+                type="text"
+                value={editParadoxForm.groupName}
+                onChange={(e) =>
+                  setEditParadoxForm((f) => ({
+                    ...f,
+                    groupName: e.target.value,
+                  }))
+                }
+                required
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                }}
+              >
+                References:
+              </label>
+
+              {/* Existing refs */}
+              {Object.entries(editingRefs).map(([key, refs]) => (
+                <div
+                  key={key}
+                  style={{
+                    marginBottom: "12px",
+                    padding: "12px",
+                    border: "1px solid #eee",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <strong style={{ color: "#333" }}>{key}</strong>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveRefKey(key)}
+                      style={{
+                        background: "#f44336",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  {/* Existing refs for this key */}
+                  {refs.map((ref, refIndex) => (
+                    <div
+                      key={refIndex}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          flex: 1,
+                          padding: "4px 8px",
+                          background: "#f5f5f5",
+                          borderRadius: "4px",
+                          marginRight: "8px",
+                        }}
+                      >
+                        {ref}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveRefFromKey(key, refIndex)}
+                        style={{
+                          background: "#ff9800",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "2px 6px",
+                          cursor: "pointer",
+                          fontSize: "10px",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Add new ref to this key */}
+                  <div
+                    style={{ display: "flex", gap: "8px", marginTop: "8px" }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Add new reference..."
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value.trim()) {
+                          handleAddRefToKey(key, e.target.value);
+                          e.target.value = "";
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "4px 8px",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {/* Add new ref key */}
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  border: "1px dashed #ccc",
+                  borderRadius: "4px",
+                }}
+              >
+                <h4 style={{ margin: "0 0 8px 0", color: "#666" }}>
+                  Add New Reference Category
+                </h4>
+                <div
+                  style={{ display: "flex", gap: "8px", marginBottom: "8px" }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Category name..."
+                    value={newRefKey}
+                    onChange={(e) => setNewRefKey(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "8px",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="First reference..."
+                    value={newRefValue}
+                    onChange={(e) => setNewRefValue(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "8px",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddRefKey}
+                    style={{
+                      background: "#4caf50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleEditParadoxCancel}
+                style={{
+                  background: "#f5f5f5",
+                  color: "#333",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                style={{
+                  background: "#2196f3",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Rename form */}
+      {editingNode && (
+        <div
+          className="paradox-rename-form"
+          style={{
+            position: "fixed",
+            top: "30%",
+            left: "50%",
+            transform: "translate(-50%, -30%)",
+            zIndex: 2000,
+            background: "#fff",
+            border: "1px solid #ccc",
+            padding: "16px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            borderRadius: "8px",
+          }}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleRenameSubmit();
+            }}
+          >
+            <div>
+              <b>Rename Paradox</b>
+            </div>
+            <div style={{ margin: "8px 0" }}>
+              <label>
+                New Name:{" "}
+                <input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  required
+                  style={{
+                    marginLeft: 8,
+                    padding: "4px 8px",
+                    border: "1px solid #ddd",
+                    borderRadius: "4px",
+                  }}
+                />
+              </label>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="submit"
+                style={{
+                  background: "#2196f3",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                  marginRight: "8px",
+                }}
+              >
+                Save
+              </button>
+              <button
+                type="button"
+                onClick={handleRenameCancel}
+                style={{
+                  background: "#f5f5f5",
+                  color: "#333",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  padding: "6px 12px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };
