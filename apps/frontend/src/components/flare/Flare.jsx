@@ -737,14 +737,20 @@ const Flare = () => {
         const x1 = x(d.source) + barWidth / 2;
         const x2 = x(d.target) + barWidth / 2;
         const distance = Math.abs(x2 - x1);
-        // Create smaller arcs closer to the bars
-        const radius = Math.min(distance / 2, 20); // Limit radius to 20px max
+
+        // Create balanced oval arcs - not too extreme
+        const radiusX = Math.min(distance / 2, 25); // Horizontal radius
+        const radiusY = Math.min(distance / 2.5, 19); // Vertical radius - slightly smaller for oval shape
+
         const y1 = arcBaseY;
         const y2 = arcBaseY;
-        // Use elliptical arc to create perfect semicircle
+
+        // Use elliptical arc with different x and y radii for oval shape
         const largeArcFlag = 0; // Always 0 for semicircle
         const sweepFlag = 1; // Always 1 for upward arc
-        return `M${x1},${y1} A${radius},${radius} 0 ${largeArcFlag},${sweepFlag} ${x2},${y2}`;
+
+        // Create oval arc using elliptical arc command
+        return `M${x1},${y1} A${radiusX},${radiusY} 0 ${largeArcFlag},${sweepFlag} ${x2},${y2}`;
       })
       .attr("cursor", "pointer")
       .on("mouseover", function (event, d) {
@@ -870,6 +876,306 @@ const Flare = () => {
       );
     legend.exit().remove();
   }, [books]);
+
+  // Book Distribution Pie Chart
+  useEffect(() => {
+    if (!books.length) return;
+
+    // Count books by section
+    const sectionCounts = books.reduce((acc, book) => {
+      const section = (book.section || "").toLowerCase().includes("old")
+        ? "Old Testament"
+        : "New Testament";
+      acc[section] = (acc[section] || 0) + 1;
+      return acc;
+    }, {});
+
+    const pieData = Object.entries(sectionCounts).map(([section, count]) => ({
+      section,
+      count,
+    }));
+
+    // Clear previous chart
+    d3.select("#book-distribution-chart").selectAll("*").remove();
+
+    const width = 300;
+    const height = 200;
+    const radius = Math.min(width, height) / 2 - 20;
+
+    const svg = d3
+      .select("#book-distribution-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${width / 2},${height / 2})`);
+
+    const color = d3
+      .scaleOrdinal()
+      .domain(pieData.map((d) => d.section))
+      .range(["#1D84B2", "#ffb300"]);
+
+    const pie = d3.pie().value((d) => d.count);
+    const arc = d3.arc().innerRadius(30).outerRadius(radius);
+
+    // Draw pie slices
+    svg
+      .selectAll("path")
+      .data(pie(pieData))
+      .join("path")
+      .attr("d", arc)
+      .attr("fill", (d) => color(d.data.section))
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 2)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("stroke-width", 3).attr("stroke", "#333");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("stroke-width", 2).attr("stroke", "#fff");
+      });
+
+    // Add labels
+    svg
+      .selectAll("text")
+      .data(pie(pieData))
+      .join("text")
+      .attr("transform", (d) => `translate(${arc.centroid(d)})`)
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .style("fill", "#fff")
+      .text((d) => `${d.data.section}\n${d.data.count} books`);
+  }, [books]);
+
+  // Chapter Word Count Bar Chart
+  useEffect(() => {
+    if (!chapters.length) return;
+
+    // Get top 10 chapters by word count
+    const topChapters = [...chapters]
+      .sort((a, b) => (b.wordCount || 0) - (a.wordCount || 0))
+      .slice(0, 10);
+
+    // Clear previous chart
+    d3.select("#word-count-chart").selectAll("*").remove();
+
+    const width = 350;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 40, left: 60 };
+
+    const svg = d3
+      .select("#word-count-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const x = d3
+      .scaleBand()
+      .domain(topChapters.map((d, i) => `${d.book} ${d.chapterNum}`))
+      .range([margin.left, width - margin.right])
+      .padding(0.1);
+
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(topChapters, (d) => d.wordCount || 0)])
+      .range([height - margin.bottom, margin.top]);
+
+    // Add bars
+    svg
+      .selectAll("rect")
+      .data(topChapters)
+      .join("rect")
+      .attr("x", (d) => x(`${d.book} ${d.chapterNum}`))
+      .attr("y", (d) => y(d.wordCount || 0))
+      .attr("width", x.bandwidth())
+      .attr("height", (d) => height - margin.bottom - y(d.wordCount || 0))
+      .attr("fill", "#1D84B2")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("fill", "#ffb300");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("fill", "#1D84B2");
+      });
+
+    // Add x-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("font-size", "10px")
+      .attr("transform", "rotate(-45)")
+      .attr("text-anchor", "end");
+
+    // Add y-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("font-size", "10px");
+  }, [chapters]);
+
+  // Paradox Distribution Chart
+  useEffect(() => {
+    if (!paradoxes.length) return;
+
+    // Group paradoxes by subject/keyword
+    const subjectGroups = {};
+    paradoxes.forEach((paradox) => {
+      const desc = (paradox.description || paradox.desc || "").toLowerCase();
+      let subject = "Other";
+
+      if (desc.includes("sabbath")) subject = "Sabbath";
+      else if (desc.includes("jesus") || desc.includes("christ"))
+        subject = "Jesus";
+      else if (desc.includes("god")) subject = "God";
+      else if (desc.includes("love")) subject = "Love";
+      else if (desc.includes("faith")) subject = "Faith";
+      else if (desc.includes("grace")) subject = "Grace";
+      else if (desc.includes("works")) subject = "Works";
+      else if (desc.includes("dead") || desc.includes("death"))
+        subject = "State of the Dead";
+      else if (desc.includes("paradox")) subject = "Paradoxes";
+
+      subjectGroups[subject] = (subjectGroups[subject] || 0) + 1;
+    });
+
+    const chartData = Object.entries(subjectGroups).map(([subject, count]) => ({
+      subject,
+      count,
+    }));
+
+    // Clear previous chart
+    d3.select("#paradox-distribution-chart").selectAll("*").remove();
+
+    const width = 350;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 40, left: 80 };
+
+    const svg = d3
+      .select("#paradox-distribution-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const y = d3
+      .scaleBand()
+      .domain(chartData.map((d) => d.subject))
+      .range([margin.top, height - margin.bottom])
+      .padding(0.1);
+
+    const x = d3
+      .scaleLinear()
+      .domain([0, d3.max(chartData, (d) => d.count)])
+      .range([margin.left, width - margin.right]);
+
+    // Add bars
+    svg
+      .selectAll("rect")
+      .data(chartData)
+      .join("rect")
+      .attr("x", margin.left)
+      .attr("y", (d) => y(d.subject))
+      .attr("width", (d) => x(d.count) - margin.left)
+      .attr("height", y.bandwidth())
+      .attr("fill", "#6e4b91")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("fill", "#ff6b35");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("fill", "#6e4b91");
+      });
+
+    // Add x-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("font-size", "10px");
+
+    // Add y-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("font-size", "10px");
+  }, [paradoxes]);
+
+  // Translation Comparison Chart
+  useEffect(() => {
+    // Clear previous chart
+    d3.select("#translation-chart").selectAll("*").remove();
+
+    const width = 350;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 40, left: 80 };
+
+    const svg = d3
+      .select("#translation-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const y = d3
+      .scaleBand()
+      .domain(TRANSLATIONS.map((t) => t.label))
+      .range([margin.top, height - margin.bottom])
+      .padding(0.1);
+
+    const x = d3
+      .scaleLinear()
+      .domain([0, TRANSLATIONS.length])
+      .range([margin.left, width - margin.right]);
+
+    // Add bars for each translation
+    svg
+      .selectAll("rect")
+      .data(TRANSLATIONS)
+      .join("rect")
+      .attr("x", margin.left)
+      .attr("y", (d, i) => y(d.label))
+      .attr("width", (d, i) => x(i + 1) - margin.left)
+      .attr("height", y.bandwidth())
+      .attr("fill", (d, i) => (d.value === translation ? "#ffb300" : "#1D84B2"))
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("fill", "#ff6b35");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr(
+          "fill",
+          d.value === translation ? "#ffb300" : "#1D84B2",
+        );
+      });
+
+    // Add y-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("font-size", "9px");
+
+    // Add current translation indicator
+    svg
+      .append("text")
+      .attr("x", width - margin.right)
+      .attr("y", margin.top)
+      .attr("text-anchor", "end")
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .style("fill", "#ffb300")
+      .text("Current");
+  }, [translation]);
 
   // Treemap for Book/Chapter/Verse Hierarchy (by book, sized by word count)
   useEffect(() => {
@@ -1023,7 +1329,7 @@ const Flare = () => {
           className="card-body d-flex justify-content-center position-relative"
           style={{
             flex: 1,
-            minHeight: 600,
+            minHeight: 500,
             overflow: "visible",
             background: "#fff",
             borderRadius: 12,
@@ -1169,6 +1475,460 @@ const Flare = () => {
           </div>
         </div>
       )}
+
+      {/* Additional Tips and Information Grid */}
+      <div
+        style={{
+          margin: "20px auto",
+          padding: "20px",
+          width: "100%",
+          maxWidth: "1100px",
+          background: "#fff",
+          borderRadius: "12px",
+          border: "1px solid #e9ecef",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "20px",
+            color: "#333",
+            margin: "0 0 20px 0",
+            fontWeight: "600",
+            textAlign: "center",
+          }}
+        >
+          Bible Study Insights & Statistics
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "20px",
+            marginTop: "20px",
+          }}
+        >
+          {/* Left Column */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+              }}
+            >
+              📚 Translation & Book Statistics
+            </h4>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Current Translation:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {TRANSLATION_LABELS[translation] || translation.toUpperCase()}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Books:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {books.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Chapters:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {chapters.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Words:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {chapters
+                    .reduce((sum, ch) => sum + (ch.wordCount || 0), 0)
+                    .toLocaleString()}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Characters:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {chapters
+                    .reduce((sum, ch) => sum + (ch.charCount || 0), 0)
+                    .toLocaleString()}
+                </span>
+              </div>
+              {selectedBook && (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span style={{ color: "#666" }}>Selected Book:</span>
+                  <span style={{ fontWeight: "600", color: "#333" }}>
+                    {books.find((b) => String(b.id) === String(selectedBook))
+                      ?.short_name || "Unknown"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+              }}
+            >
+              🔍 Paradox Analysis
+            </h4>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Paradoxes:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {paradoxes.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Filtered Paradoxes:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {filteredParadoxes.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Current Subject:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {subject}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Arc Color Theme:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {color}
+                </span>
+              </div>
+              {selectedArcInfo && (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span style={{ color: "#666" }}>Selected Chapters:</span>
+                  <span style={{ fontWeight: "600", color: "#333" }}>
+                    {selectedArcInfo.chapters.length}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Tips Section */}
+        <div
+          style={{
+            marginTop: "25px",
+            padding: "20px",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            borderRadius: "8px",
+            color: "white",
+          }}
+        >
+          <h4
+            style={{
+              fontSize: "18px",
+              margin: "0 0 15px 0",
+              fontWeight: "600",
+              textAlign: "center",
+            }}
+          >
+            💡 Study Tips & Navigation
+          </h4>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: "15px",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>🎯</span>
+              <div>
+                <strong>Click on arcs</strong> to explore different paradoxes
+                and their connected chapters
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>📖</span>
+              <div>
+                <strong>Click on chapter bars</strong> to open BibleHub for
+                detailed reading
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>🔍</span>
+              <div>
+                <strong>Use filters</strong> to focus on specific books,
+                subjects, or translations
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>📊</span>
+              <div>
+                <strong>Hover over elements</strong> to see detailed tooltips
+                and statistics
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats Row */}
+        <div
+          style={{
+            marginTop: "20px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gap: "15px",
+          }}
+        >
+          <div
+            style={{
+              background: "#e3f2fd",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #bbdefb",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#1976d2" }}
+            >
+              {
+                books.filter((b) =>
+                  (b.section || "").toLowerCase().includes("old"),
+                ).length
+              }
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              Old Testament Books
+            </div>
+          </div>
+          <div
+            style={{
+              background: "#fff3e0",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #ffcc80",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#f57c00" }}
+            >
+              {
+                books.filter((b) =>
+                  (b.section || "").toLowerCase().includes("new"),
+                ).length
+              }
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              New Testament Books
+            </div>
+          </div>
+          <div
+            style={{
+              background: "#f3e5f5",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #e1bee7",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#7b1fa2" }}
+            >
+              {chapters
+                .reduce((sum, ch) => sum + (ch.verseCount || 0), 0)
+                .toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>Total Verses</div>
+          </div>
+          <div
+            style={{
+              background: "#e8f5e8",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #c8e6c9",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#388e3c" }}
+            >
+              {Math.round(
+                chapters.reduce((sum, ch) => sum + (ch.wordCount || 0), 0) /
+                  chapters.length,
+              ).toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              Avg Words/Chapter
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Charts and Visualizations */}
+      <div
+        style={{
+          margin: "20px auto",
+          padding: "20px",
+          width: "100%",
+          maxWidth: "1100px",
+          background: "#fff",
+          borderRadius: "12px",
+          border: "1px solid #e9ecef",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h3
+          style={{
+            fontSize: "20px",
+            color: "#333",
+            margin: "0 0 20px 0",
+            fontWeight: "600",
+            textAlign: "center",
+          }}
+        >
+          Bible Data Visualizations
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
+            gap: "25px",
+            marginTop: "20px",
+          }}
+        >
+          {/* Book Distribution Pie Chart */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
+              Book Distribution by Testament
+            </h4>
+            <div id="book-distribution-chart" style={{ height: "200px" }}></div>
+          </div>
+
+          {/* Chapter Word Count Bar Chart */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
+              Top 10 Chapters by Word Count
+            </h4>
+            <div id="word-count-chart" style={{ height: "200px" }}></div>
+          </div>
+
+          {/* Paradox Distribution Chart */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
+              Paradox Distribution by Subject
+            </h4>
+            <div
+              id="paradox-distribution-chart"
+              style={{ height: "200px" }}
+            ></div>
+          </div>
+
+          {/* Translation Comparison Chart */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+                textAlign: "center",
+              }}
+            >
+              Available Translations
+            </h4>
+            <div id="translation-chart" style={{ height: "200px" }}></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

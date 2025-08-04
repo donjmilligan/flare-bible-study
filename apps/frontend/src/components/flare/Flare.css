@@ -29,7 +29,7 @@
     padding: 0;
     background: #fff;
     flex: 1;
-    min-height: 800px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
