@@ -221,6 +221,17 @@ const Flare = () => {
   const [editName, setEditName] = useState("");
   const [selectedParadox, setSelectedParadox] = useState(null);
 
+  // Add new state for creating new paradoxes
+  const [newParadoxForm, setNewParadoxForm] = useState({
+    visible: false,
+    description: "",
+    groupName: "",
+    refs: {},
+  });
+  const [newParadoxRefs, setNewParadoxRefs] = useState({});
+  const [newParadoxRefKey, setNewParadoxRefKey] = useState("");
+  const [newParadoxRefValue, setNewParadoxRefValue] = useState("");
+
   // Zoom control functions - same as OldTestamentJesus1
   const handleZoomIn = useCallback(() => {
     setZoomLevel((prev) => Math.min(prev + 0.1, 2));
@@ -254,18 +265,26 @@ const Flare = () => {
     const handleClick = (event) => {
       // Don't close if clicking on the context menu itself
       if (event.target.closest(".paradox-context-menu")) return;
-      setContextMenu({ ...contextMenu, visible: false });
+      setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
     };
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
-        setContextMenu({ ...contextMenu, visible: false });
+        setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+      }
+    };
+    const handleRightClick = (event) => {
+      // Close context menu on any right-click outside of it
+      if (!event.target.closest(".paradox-context-menu")) {
+        setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
       }
     };
     window.addEventListener("click", handleClick);
     window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("contextmenu", handleRightClick);
     return () => {
       window.removeEventListener("click", handleClick);
       window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("contextmenu", handleRightClick);
     };
   }, [contextMenu]);
 
@@ -462,7 +481,7 @@ const Flare = () => {
       refs: refsToEdit,
     });
     setEditingRefs(refsToEdit);
-    setContextMenu({ ...contextMenu, visible: false });
+    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
   };
 
   const handleEditParadoxSubmit = async () => {
@@ -542,9 +561,14 @@ const Flare = () => {
 
   const handleAddRefToKey = (key, ref) => {
     if (ref.trim()) {
+      // Split by comma and clean up each reference
+      const refs = ref
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
       setEditingRefs({
         ...editingRefs,
-        [key]: [...(editingRefs[key] || []), ref.trim()],
+        [key]: [...(editingRefs[key] || []), ...refs],
       });
     }
   };
@@ -560,7 +584,7 @@ const Flare = () => {
   const handleRename = (paradox) => {
     setEditName(paradox.description || "");
     setEditingNode(paradox);
-    setContextMenu({ ...contextMenu, visible: false });
+    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
   };
 
   const handleRenameSubmit = async () => {
@@ -603,7 +627,7 @@ const Flare = () => {
       await fetch(`${API_BASE}/paradoxes/${paradox.id}`, {
         method: "DELETE",
       });
-      setContextMenu({ ...contextMenu, visible: false });
+      setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
 
       // Refresh paradoxes data
       const response = await fetch(`${API_BASE}/paradoxes`);
@@ -615,14 +639,140 @@ const Flare = () => {
     }
   };
 
-  const handleSelectParadox = (paradox) => {
-    setSelectedParadox(paradox);
-    setContextMenu({ ...contextMenu, visible: false });
+  // New paradox handlers
+  const handleNewParadox = () => {
+    setNewParadoxForm({
+      visible: true,
+      description: "",
+      groupName: "",
+      refs: {},
+    });
+    setNewParadoxRefs({});
+    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+  };
+
+  const handleNewParadoxSubmit = async () => {
+    if (
+      !newParadoxForm.description.trim() ||
+      !newParadoxForm.groupName.trim()
+    ) {
+      alert("Please fill in both description and group name.");
+      return;
+    }
+
+    try {
+      // Convert refs to the format expected by the API
+      let refsToSave = newParadoxRefs;
+
+      // If we have only one key called "References", convert to array format
+      if (
+        Object.keys(newParadoxRefs).length === 1 &&
+        newParadoxRefs["References"]
+      ) {
+        refsToSave = newParadoxRefs["References"];
+      }
+
+      const response = await fetch(`${API_BASE}/paradoxes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: newParadoxForm.description.trim(),
+          group_name: newParadoxForm.groupName.trim(),
+          refs: refsToSave,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create paradox");
+      }
+
+      // Refresh paradoxes data
+      const refreshResponse = await fetch(`${API_BASE}/paradoxes`);
+      const data = await refreshResponse.json();
+      console.log("Refreshed paradoxes data:", data);
+      setParadoxes(data);
+
+      // Force a re-render by updating the state
+      setTimeout(() => {
+        console.log("Current paradoxes state:", paradoxes);
+        console.log("Filtered paradoxes:", filteredParadoxes);
+      }, 100);
+
+      // Reset form
+      setNewParadoxForm({
+        visible: false,
+        description: "",
+        groupName: "",
+        refs: {},
+      });
+      setNewParadoxRefs({});
+      setNewParadoxRefKey("");
+      setNewParadoxRefValue("");
+
+      alert(
+        "Paradox created successfully! Please wait a moment for it to appear in the diagram.",
+      );
+    } catch (error) {
+      console.error("Error creating paradox:", error);
+      alert("Failed to create paradox. Please try again.");
+    }
+  };
+
+  const handleNewParadoxCancel = () => {
+    setNewParadoxForm({
+      visible: false,
+      description: "",
+      groupName: "",
+      refs: {},
+    });
+    setNewParadoxRefs({});
+    setNewParadoxRefKey("");
+    setNewParadoxRefValue("");
+  };
+
+  const handleAddNewParadoxRefKey = () => {
+    if (newParadoxRefKey.trim() && newParadoxRefValue.trim()) {
+      setNewParadoxRefs({
+        ...newParadoxRefs,
+        [newParadoxRefKey.trim()]: [newParadoxRefValue.trim()],
+      });
+      setNewParadoxRefKey("");
+      setNewParadoxRefValue("");
+    }
+  };
+
+  const handleRemoveNewParadoxRefKey = (key) => {
+    const newRefs = { ...newParadoxRefs };
+    delete newRefs[key];
+    setNewParadoxRefs(newRefs);
+  };
+
+  const handleAddRefToNewParadoxKey = (key, ref) => {
+    if (ref.trim()) {
+      // Split by comma and clean up each reference
+      const refs = ref
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
+      setNewParadoxRefs({
+        ...newParadoxRefs,
+        [key]: [...(newParadoxRefs[key] || []), ...refs],
+      });
+    }
+  };
+
+  const handleRemoveRefFromNewParadoxKey = (key, refIndex) => {
+    setNewParadoxRefs({
+      ...newParadoxRefs,
+      [key]: newParadoxRefs[key].filter((_, index) => index !== refIndex),
+    });
   };
 
   // Filtering logic
   const filteredParadoxes = paradoxes.filter((par) => {
-    console.log(`Filtering paradox: "${par.description || par.desc}"`);
+    console.log(
+      `Filtering paradox: "${par.description || par.desc}" (ID: ${par.id})`,
+    );
 
     if (subject !== "All") {
       const desc = (par.description || par.desc || "").toLowerCase();
@@ -677,6 +827,14 @@ const Flare = () => {
     console.log("Books available:", books.length);
     console.log("Filtered paradoxes:", filteredParadoxes.length);
     console.log("All paradoxes:", paradoxes.length);
+    console.log(
+      "All paradoxes details:",
+      paradoxes.map((p) => ({
+        id: p.id,
+        description: p.description,
+        refs: p.refs,
+      })),
+    );
 
     // Prepare arc data (between chapters based on paradoxes)
     const arcLinks = [];
@@ -691,10 +849,12 @@ const Flare = () => {
       // Get absolute chapter indices for all references in this paradox
       const chapterIndices = refs
         .map((ref) => {
-          const extracted = extractBookAndChapter(ref);
-          const index = getAbsoluteChapterIndex(ref, chapters);
+          // Clean up the reference first
+          const cleanRef = ref.trim();
+          const extracted = extractBookAndChapter(cleanRef);
+          const index = getAbsoluteChapterIndex(cleanRef, chapters);
           console.log(
-            `Ref: "${ref}" -> extracted: "${extracted}" -> index: ${index}`,
+            `Ref: "${cleanRef}" -> extracted: "${extracted}" -> index: ${index}`,
           );
           return index;
         })
@@ -703,6 +863,14 @@ const Flare = () => {
         );
 
       console.log(`Paradox ${pi} chapterIndices:`, chapterIndices);
+      console.log(
+        `Paradox ${pi} valid refs:`,
+        refs.filter((ref, i) => {
+          const extracted = extractBookAndChapter(ref);
+          const index = getAbsoluteChapterIndex(ref, chapters);
+          return index !== null && index >= 0 && index < chapters.length;
+        }),
+      );
 
       // Remove duplicates and sort
       const uniqueChapterIndexes = [...new Set(chapterIndices)].sort(
@@ -832,6 +1000,21 @@ const Flare = () => {
           endVerse: `Test ${i + 2}`,
         });
       }
+    }
+
+    // Always add a test arc to verify rendering is working
+    if (chapters.length > 1) {
+      console.log("Adding test arc to verify rendering works");
+      arcLinks.push({
+        source: 0,
+        target: Math.min(10, chapters.length - 1),
+        desc: "Test Arc - Should Always Appear",
+        group: "Test",
+        refs: ["Test"],
+        paradoxId: "test-always",
+        startVerse: "Test",
+        endVerse: "Test",
+      });
     }
 
     console.log("Final arcLinks after test:", arcLinks);
@@ -1116,6 +1299,9 @@ const Flare = () => {
         event.preventDefault();
         event.stopPropagation();
 
+        // Hide the tooltip immediately when right-clicking
+        hideOverlay();
+
         // Find the paradox data for this arc
         // Try to find by ID first, then by description, then by index
         let paradox = filteredParadoxes.find((p) => p.id === d.paradoxId);
@@ -1128,36 +1314,63 @@ const Flare = () => {
         }
 
         if (paradox) {
-          // Get the SVG container's bounding rect
+          // Get the D3 container bounds
           const svgContainer = arcSvgRef.current.closest("#bible-chart");
-          const containerRect = svgContainer.getBoundingClientRect();
+          const containerRect = svgContainer
+            ? svgContainer.getBoundingClientRect()
+            : null;
 
-          // Calculate position relative to the container
-          let x = event.clientX - containerRect.left;
-          let y = event.clientY - containerRect.top;
-
-          // Context menu dimensions (approximate)
-          const menuWidth = 200;
-          const menuHeight = 40;
-
-          // Adjust x position if menu would go off the right edge
-          if (x + menuWidth > containerRect.width) {
-            x = x - menuWidth;
+          // Use positioning relative to the D3 container if available, otherwise use viewport
+          let x, y;
+          if (containerRect) {
+            x = event.clientX - containerRect.left;
+            y = event.clientY - containerRect.top;
+          } else {
+            x = event.clientX;
+            y = event.clientY;
           }
 
-          // Position menu just above the cursor (closer to diagram)
-          y = y - 10;
+          // Always position menu to the left of cursor to avoid going off the right edge
+          x = x - 260; // menuWidth + 10px gap
+
+          // Context menu dimensions (approximate)
+          const menuWidth = 250;
+          const menuHeight = 50;
+
+          // Ensure menu doesn't go off the left edge
+          if (x < 20) {
+            x = 20;
+          }
+
+          // Position menu just above the cursor
+          y = y - menuHeight - 10;
 
           // Adjust y position if menu would go off the top edge
-          if (y < 0) {
-            y = event.clientY - containerRect.top + 10; // Position below cursor instead
+          if (y < 20) {
+            if (containerRect) {
+              y = event.clientY - containerRect.top + 10; // Position below cursor instead
+            } else {
+              y = event.clientY + 10; // Position below cursor instead
+            }
           }
 
           // Ensure menu doesn't go off the left edge
-          if (x < 0) {
-            x = 0;
+          if (x < 20) {
+            x = 20;
           }
 
+          // Final check: if menu would still go off the bottom edge
+          if (containerRect) {
+            if (y + menuHeight > containerRect.height - 20) {
+              y = containerRect.height - menuHeight - 20;
+            }
+          } else {
+            if (y + menuHeight > window.innerHeight - 20) {
+              y = window.innerHeight - menuHeight - 20;
+            }
+          }
+
+          // Use relative positioning for the context menu within the D3 container
           setContextMenu({ visible: true, x: x, y: y, paradox: paradox });
         }
       });
@@ -1725,6 +1938,133 @@ const Flare = () => {
               left: 0,
             }}
           />
+
+          {/* Context Menu */}
+          {contextMenu.visible && (
+            <div
+              className="paradox-context-menu"
+              style={{
+                position: "absolute",
+                top: contextMenu.y,
+                left: contextMenu.x,
+                zIndex: 10000,
+                background: "#fff",
+                border: "1px solid #ccc",
+                padding: "8px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                display: "flex",
+                flexDirection: "row",
+                gap: "8px",
+                borderRadius: "6px",
+                minWidth: "200px",
+                maxWidth: "300px",
+                overflow: "visible",
+                pointerEvents: "auto",
+              }}
+            >
+              <button
+                onClick={() => handleNewParadox()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#4caf50",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#f1f8e9")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Create New Paradox"
+              >
+                New Paradox
+              </button>
+              <button
+                onClick={() => handleEditParadox(contextMenu.paradox)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2196f3",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#f0f8ff")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Edit Paradox"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleRename(contextMenu.paradox)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2196f3",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#f0f8ff")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Rename Paradox"
+              >
+                Rename
+              </button>
+
+              <button
+                onClick={() => handleDelete(contextMenu.paradox)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#f44336",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#ffebee")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Delete Paradox"
+              >
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
       {(() => {
@@ -2172,251 +2512,6 @@ const Flare = () => {
         </div>
       </div>
 
-      {/* Additional Charts and Visualizations */}
-      <div
-        style={{
-          margin: "20px auto",
-          padding: "20px",
-          width: "100%",
-          maxWidth: "1100px",
-          background: "#fff",
-          borderRadius: "12px",
-          border: "1px solid #e9ecef",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
-        <h3
-          style={{
-            fontSize: "20px",
-            color: "#333",
-            margin: "0 0 20px 0",
-            fontWeight: "600",
-            textAlign: "center",
-          }}
-        >
-          Bible Data Visualizations
-        </h3>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-            gap: "25px",
-            marginTop: "20px",
-          }}
-        >
-          {/* Book Distribution Pie Chart */}
-          <div
-            style={{
-              background: "#f8f9fa",
-              padding: "20px",
-              borderRadius: "8px",
-              border: "1px solid #e9ecef",
-            }}
-          >
-            <h4
-              style={{
-                fontSize: "16px",
-                color: "#1D84B2",
-                margin: "0 0 15px 0",
-                fontWeight: "600",
-                textAlign: "center",
-              }}
-            >
-              Book Distribution by Testament
-            </h4>
-            <div id="book-distribution-chart" style={{ height: "200px" }}></div>
-          </div>
-
-          {/* Chapter Word Count Bar Chart */}
-          <div
-            style={{
-              background: "#f8f9fa",
-              padding: "20px",
-              borderRadius: "8px",
-              border: "1px solid #e9ecef",
-            }}
-          >
-            <h4
-              style={{
-                fontSize: "16px",
-                color: "#1D84B2",
-                margin: "0 0 15px 0",
-                fontWeight: "600",
-                textAlign: "center",
-              }}
-            >
-              Top 10 Chapters by Word Count
-            </h4>
-            <div id="word-count-chart" style={{ height: "200px" }}></div>
-          </div>
-
-          {/* Paradox Distribution Chart */}
-          <div
-            style={{
-              background: "#f8f9fa",
-              padding: "20px",
-              borderRadius: "8px",
-              border: "1px solid #e9ecef",
-            }}
-          >
-            <h4
-              style={{
-                fontSize: "16px",
-                color: "#1D84B2",
-                margin: "0 0 15px 0",
-                fontWeight: "600",
-                textAlign: "center",
-              }}
-            >
-              Paradox Distribution by Subject
-            </h4>
-            <div
-              id="paradox-distribution-chart"
-              style={{ height: "200px" }}
-            ></div>
-          </div>
-
-          {/* Translation Comparison Chart */}
-          <div
-            style={{
-              background: "#f8f9fa",
-              padding: "20px",
-              borderRadius: "8px",
-              border: "1px solid #e9ecef",
-            }}
-          >
-            <h4
-              style={{
-                fontSize: "16px",
-                color: "#1D84B2",
-                margin: "0 0 15px 0",
-                fontWeight: "600",
-                textAlign: "center",
-              }}
-            >
-              Available Translations
-            </h4>
-            <div id="translation-chart" style={{ height: "200px" }}></div>
-          </div>
-        </div>
-      </div>
-
-      {/* Context Menu */}
-      {contextMenu.visible && (
-        <div
-          className="paradox-context-menu"
-          style={{
-            position: "absolute",
-            top: contextMenu.y,
-            left: contextMenu.x,
-            zIndex: 9999,
-            background: "#fff",
-            border: "1px solid #ccc",
-            padding: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            display: "flex",
-            flexDirection: "row",
-            gap: "8px",
-            borderRadius: "6px",
-            minWidth: "200px",
-          }}
-        >
-          <button
-            onClick={() => handleEditParadox(contextMenu.paradox)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#2196f3",
-              fontSize: "12px",
-              fontWeight: "500",
-              cursor: "pointer",
-              padding: "6px 10px",
-              borderRadius: "4px",
-              transition: "background-color 0.2s",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f0f8ff")}
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = "transparent")
-            }
-            title="Edit Paradox"
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => handleRename(contextMenu.paradox)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#2196f3",
-              fontSize: "12px",
-              fontWeight: "500",
-              cursor: "pointer",
-              padding: "6px 10px",
-              borderRadius: "4px",
-              transition: "background-color 0.2s",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f0f8ff")}
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = "transparent")
-            }
-            title="Rename Paradox"
-          >
-            Rename
-          </button>
-          <button
-            onClick={() => handleSelectParadox(contextMenu.paradox)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#4caf50",
-              fontSize: "12px",
-              fontWeight: "500",
-              cursor: "pointer",
-              padding: "6px 10px",
-              borderRadius: "4px",
-              transition: "background-color 0.2s",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#f1f8e9")}
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = "transparent")
-            }
-            title="View Paradox Details"
-          >
-            View
-          </button>
-          <button
-            onClick={() => handleDelete(contextMenu.paradox)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#f44336",
-              fontSize: "12px",
-              fontWeight: "500",
-              cursor: "pointer",
-              padding: "6px 10px",
-              borderRadius: "4px",
-              transition: "background-color 0.2s",
-              textAlign: "center",
-              whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => (e.target.style.backgroundColor = "#ffebee")}
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = "transparent")
-            }
-            title="Delete Paradox"
-          >
-            Delete
-          </button>
-        </div>
-      )}
-
       {/* Edit Paradox Form */}
       {editParadoxForm.visible && (
         <div
@@ -2600,7 +2695,7 @@ const Flare = () => {
                   >
                     <input
                       type="text"
-                      placeholder="Add new reference..."
+                      placeholder="Add new reference (e.g., Matthew 14:25-33, John 14:9)"
                       value=""
                       onChange={(e) => {
                         if (e.target.value.trim()) {
@@ -2785,6 +2880,306 @@ const Flare = () => {
                 }}
               >
                 Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* New Paradox Form */}
+      {newParadoxForm.visible && (
+        <div
+          className="paradox-new-form"
+          style={{
+            position: "fixed",
+            top: "5%",
+            left: "50%",
+            transform: "translate(-50%, -5%)",
+            zIndex: 2000,
+            background: "#fff",
+            border: "1px solid #ccc",
+            padding: "20px",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
+            borderRadius: "8px",
+            maxWidth: "600px",
+            maxHeight: "80vh",
+            overflow: "auto",
+          }}
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleNewParadoxSubmit();
+            }}
+          >
+            <div style={{ marginBottom: "16px" }}>
+              <h3 style={{ margin: "0 0 16px 0", color: "#333" }}>
+                Create New Paradox
+              </h3>
+            </div>
+
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "4px",
+                  fontWeight: "500",
+                }}
+              >
+                Description:
+              </label>
+              <input
+                type="text"
+                value={newParadoxForm.description}
+                onChange={(e) =>
+                  setNewParadoxForm((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
+                }
+                required
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "12px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "4px",
+                  fontWeight: "500",
+                }}
+              >
+                Group Name:
+              </label>
+              <input
+                type="text"
+                value={newParadoxForm.groupName}
+                onChange={(e) =>
+                  setNewParadoxForm((f) => ({
+                    ...f,
+                    groupName: e.target.value,
+                  }))
+                }
+                required
+                style={{
+                  width: "100%",
+                  padding: "8px",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: "16px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "500",
+                }}
+              >
+                References:
+              </label>
+
+              {/* Existing refs */}
+              {Object.entries(newParadoxRefs).map(([key, refs]) => (
+                <div
+                  key={key}
+                  style={{
+                    marginBottom: "12px",
+                    padding: "12px",
+                    border: "1px solid #eee",
+                    borderRadius: "4px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "8px",
+                    }}
+                  >
+                    <strong style={{ color: "#333" }}>{key}</strong>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewParadoxRefKey(key)}
+                      style={{
+                        background: "#f44336",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "4px 8px",
+                        cursor: "pointer",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  {/* Existing refs for this key */}
+                  {refs.map((ref, refIndex) => (
+                    <div
+                      key={refIndex}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          flex: 1,
+                          padding: "4px 8px",
+                          background: "#f5f5f5",
+                          borderRadius: "4px",
+                          marginRight: "8px",
+                        }}
+                      >
+                        {ref}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleRemoveRefFromNewParadoxKey(key, refIndex)
+                        }
+                        style={{
+                          background: "#ff9800",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "4px",
+                          padding: "2px 6px",
+                          cursor: "pointer",
+                          fontSize: "10px",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Add new ref to this key */}
+                  <div
+                    style={{ display: "flex", gap: "8px", marginTop: "8px" }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Add new reference (e.g., Matthew 14:25-33, John 14:9)"
+                      value=""
+                      onChange={(e) => {
+                        if (e.target.value.trim()) {
+                          handleAddRefToNewParadoxKey(key, e.target.value);
+                          e.target.value = "";
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "4px 8px",
+                        border: "1px solid #ddd",
+                        borderRadius: "4px",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {/* Add new ref key */}
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "12px",
+                  border: "1px dashed #ccc",
+                  borderRadius: "4px",
+                }}
+              >
+                <h4 style={{ margin: "0 0 8px 0", color: "#666" }}>
+                  Add New Reference Category
+                </h4>
+                <div
+                  style={{ display: "flex", gap: "8px", marginBottom: "8px" }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Category name..."
+                    value={newParadoxRefKey}
+                    onChange={(e) => setNewParadoxRefKey(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "8px",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <input
+                    type="text"
+                    placeholder="First reference..."
+                    value={newParadoxRefValue}
+                    onChange={(e) => setNewParadoxRefValue(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "8px",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddNewParadoxRefKey}
+                    style={{
+                      background: "#4caf50",
+                      color: "white",
+                      border: "none",
+                      borderRadius: "4px",
+                      padding: "8px 16px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                justifyContent: "flex-end",
+              }}
+            >
+              <button
+                type="button"
+                onClick={handleNewParadoxCancel}
+                style={{
+                  background: "#f5f5f5",
+                  color: "#333",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                style={{
+                  background: "#4caf50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  padding: "8px 16px",
+                  cursor: "pointer",
+                }}
+              >
+                Create Paradox
               </button>
             </div>
           </form>
