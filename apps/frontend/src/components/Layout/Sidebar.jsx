@@ -39,7 +39,7 @@ const navSections = [
         title: "Dashboard",
         icon: <i className="fas fa-clipboard"></i>,
         submenu: [
-          { title: "Flare", path: "/" },
+          { title: "Flare", path: "/flare" },
           {
             title: "HisPattern.com",
             path: "https://Hispattern.com",

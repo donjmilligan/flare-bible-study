@@ -27,7 +27,7 @@ const Login = () => {
       const data = await res.json();
       if (data.success) {
         setSuccess("Login successful! Redirecting to dashboard...");
-        setTimeout(() => navigate("/"), 1000);
+        setTimeout(() => navigate("/flare"), 1000);
       } else {
         setError(data.error || "Login failed");
       }
@@ -39,34 +39,36 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+    <div className="login-page">
+      <div className="login-container">
+        <h2>Login</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </button>
+          {error && <div className="error">{error}</div>}
+          {success && <div className="success">{success}</div>}
+        </form>
+        <button className="switch-link" onClick={() => navigate("/signup")}>
+          Sign Up
         </button>
-        {error && <div className="error">{error}</div>}
-        {success && <div className="success">{success}</div>}
-      </form>
-      <button className="switch-link" onClick={() => navigate("/signup")}>
-        Sign Up
-      </button>
+      </div>
     </div>
   );
 };
