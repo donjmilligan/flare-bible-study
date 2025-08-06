@@ -75,12 +75,68 @@ router.get("/chapters/:chapterId", async (req, res) => {
 router.get("/paradoxes", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT group_name, description, refs, url FROM paradoxes",
+      "SELECT id, group_name, description, refs FROM bible_paradoxes",
     );
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
-// ... existing code ...
+
+// PUT update a specific paradox
+router.put("/paradoxes/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description, group_name, refs } = req.body;
+
+    const result = await pool.query(
+      "UPDATE bible_paradoxes SET description = $1, group_name = $2, refs = $3, updated_at = NOW() WHERE id = $4 RETURNING *",
+      [description, group_name, JSON.stringify(refs), id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Paradox not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST create a new paradox
+router.post("/paradoxes", async (req, res) => {
+  try {
+    const { description, group_name, refs } = req.body;
+
+    const result = await pool.query(
+      "INSERT INTO bible_paradoxes (description, group_name, refs) VALUES ($1, $2, $3) RETURNING *",
+      [description, group_name, JSON.stringify(refs)],
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE a specific paradox
+router.delete("/paradoxes/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      "DELETE FROM bible_paradoxes WHERE id = $1 RETURNING *",
+      [id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Paradox not found" });
+    }
+
+    res.json({ message: "Paradox deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 module.exports = router;

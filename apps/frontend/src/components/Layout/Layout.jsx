@@ -1,5 +1,5 @@
 "use client";
-
+import * as React from "react";
 import { useState, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
@@ -27,6 +27,20 @@ const Layout = React.memo(({ children }) => {
 
   // Memoized content to prevent unnecessary re-renders
   const memoizedChildren = useMemo(() => children, [children]);
+
+  // Memoized content renderer - moved inside component
+  const renderSubSidebarContent = useCallback((activeSubItem) => {
+    switch (activeSubItem) {
+      case "settings":
+        return <SettingsPanel />;
+      case "about":
+        return <AboutPanel />;
+      case "howto":
+        return <HowToPanel />;
+      default:
+        return null;
+    }
+  }, []);
 
   return (
     <div className="layout-root">
@@ -71,20 +85,6 @@ const Layout = React.memo(({ children }) => {
       </div>
     </div>
   );
-});
-
-// Memoized content renderer
-const renderSubSidebarContent = React.memo((activeSubItem) => {
-  switch (activeSubItem) {
-    case "settings":
-      return <SettingsPanel />;
-    case "about":
-      return <AboutPanel />;
-    case "howto":
-      return <HowToPanel />;
-    default:
-      return null;
-  }
 });
 
 const SettingsPanel = React.memo(() => (

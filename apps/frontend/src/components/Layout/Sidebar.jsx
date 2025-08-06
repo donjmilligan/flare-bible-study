@@ -1,4 +1,5 @@
 "use client";
+import * as React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import "./Sidebar.css";
@@ -38,7 +39,7 @@ const navSections = [
         title: "Dashboard",
         icon: <i className="fas fa-clipboard"></i>,
         submenu: [
-          { title: "Flare", path: "/" },
+          { title: "Flare", path: "/flare" },
           {
             title: "HisPattern.com",
             path: "https://Hispattern.com",
