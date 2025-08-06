@@ -269,7 +269,7 @@ const Flare = () => {
 
   // Fetch paradoxes data
   useEffect(() => {
-    fetch(`${API_BASE}/paradoxes`)
+    fetch(`${API_BASE}/crossreferences`)
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
@@ -278,7 +278,10 @@ const Flare = () => {
               try {
                 paradox.refs = JSON.parse(paradox.refs);
               } catch (e) {
-                console.error("Failed to parse refs for paradox:", paradox);
+                console.error(
+                  "Failed to parse refs for cross reference:",
+                  paradox,
+                );
               }
             }
             if (typeof paradox.refs === "object" && paradox.refs !== null) {
@@ -347,316 +350,6 @@ const Flare = () => {
         setParadoxes(sampleData);
       });
   }, []);
-
-  // Edit paradox handlers
-  const handleEditParadox = (paradox) => {
-    // Handle both array and object formats for refs
-    let refsToEdit = {};
-
-    if (Array.isArray(paradox.refs)) {
-      // Convert array format to object format for editing
-      refsToEdit = {
-        References: paradox.refs,
-      };
-    } else if (typeof paradox.refs === "object" && paradox.refs !== null) {
-      // Already in object format
-      refsToEdit = paradox.refs;
-    }
-
-    setEditParadoxForm({
-      visible: true,
-      paradox: paradox,
-      description: paradox.description || paradox.desc || "",
-      groupName: paradox.group_name || "",
-      refs: refsToEdit,
-    });
-    setEditingRefs(refsToEdit);
-    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
-  };
-
-  const handleEditParadoxSubmit = async () => {
-    if (!editParadoxForm.paradox) return;
-
-    try {
-      // Convert refs back to original format if needed
-      let refsToSave = editingRefs;
-
-      // If the original was an array and we only have one key called "References",
-      // convert back to array format
-      if (
-        Array.isArray(editParadoxForm.paradox.refs) &&
-        Object.keys(editingRefs).length === 1 &&
-        editingRefs["References"]
-      ) {
-        refsToSave = editingRefs["References"];
-      }
-
-      // Update the paradox via API
-      await fetch(`${API_BASE}/paradoxes/${editParadoxForm.paradox.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: editParadoxForm.description,
-          group_name: editParadoxForm.groupName,
-          refs: refsToSave,
-        }),
-      });
-
-      // Refresh paradoxes data
-      const response = await fetch(`${API_BASE}/paradoxes`);
-      const data = await response.json();
-      setParadoxes(data);
-
-      setEditParadoxForm({
-        visible: false,
-        paradox: null,
-        description: "",
-        groupName: "",
-        refs: {},
-      });
-      setEditingRefs({});
-    } catch (error) {
-      console.error("Error updating paradox:", error);
-      alert("Failed to update paradox. Please try again.");
-    }
-  };
-
-  const handleEditParadoxCancel = () => {
-    setEditParadoxForm({
-      visible: false,
-      paradox: null,
-      description: "",
-      groupName: "",
-      refs: {},
-    });
-    setEditingRefs({});
-  };
-
-  const handleAddRefKey = () => {
-    if (newRefKey.trim() && newRefValue.trim()) {
-      setEditingRefs({
-        ...editingRefs,
-        [newRefKey.trim()]: [newRefValue.trim()],
-      });
-      setNewRefKey("");
-      setNewRefValue("");
-    }
-  };
-
-  const handleRemoveRefKey = (key) => {
-    const newRefs = { ...editingRefs };
-    delete newRefs[key];
-    setEditingRefs(newRefs);
-  };
-
-  const handleAddRefToKey = (key, ref) => {
-    if (ref.trim()) {
-      // Split by comma and clean up each reference
-      const refs = ref
-        .split(",")
-        .map((r) => r.trim())
-        .filter((r) => r.length > 0);
-      setEditingRefs({
-        ...editingRefs,
-        [key]: [...(editingRefs[key] || []), ...refs],
-      });
-    }
-  };
-
-  const handleRemoveRefFromKey = (key, refIndex) => {
-    setEditingRefs({
-      ...editingRefs,
-      [key]: editingRefs[key].filter((_, index) => index !== refIndex),
-    });
-  };
-
-  // Add handlers for insert, delete, rename functionality
-  const handleRename = (paradox) => {
-    setEditName(paradox.description || "");
-    setEditingNode(paradox);
-    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
-  };
-
-  const handleRenameSubmit = async () => {
-    if (!editingNode || !editName.trim()) return;
-
-    try {
-      // Update the paradox description via API
-      await fetch(`${API_BASE}/paradoxes/${editingNode.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: editName.trim(),
-          group_name: editingNode.group_name || "",
-          refs: editingNode.refs || {},
-        }),
-      });
-
-      // Refresh paradoxes data
-      const response = await fetch(`${API_BASE}/paradoxes`);
-      const data = await response.json();
-      setParadoxes(data);
-
-      setEditingNode(null);
-      setEditName("");
-    } catch (error) {
-      console.error("Error renaming paradox:", error);
-      alert("Failed to rename paradox. Please try again.");
-    }
-  };
-
-  const handleRenameCancel = () => {
-    setEditingNode(null);
-    setEditName("");
-  };
-
-  const handleDelete = async (paradox) => {
-    if (!window.confirm(`Delete paradox: ${paradox.description}?`)) return;
-
-    try {
-      await fetch(`${API_BASE}/paradoxes/${paradox.id}`, {
-        method: "DELETE",
-      });
-      setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
-
-      // Refresh paradoxes data
-      const response = await fetch(`${API_BASE}/paradoxes`);
-      const data = await response.json();
-      setParadoxes(data);
-    } catch (error) {
-      console.error("Error deleting paradox:", error);
-      alert("Failed to delete paradox. Please try again.");
-    }
-  };
-
-  // New paradox handlers
-  const handleNewParadox = () => {
-    setNewParadoxForm({
-      visible: true,
-      description: "",
-      groupName: "",
-      refs: {},
-    });
-    setNewParadoxRefs({});
-    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
-  };
-
-  const handleNewParadoxSubmit = async () => {
-    if (
-      !newParadoxForm.description.trim() ||
-      !newParadoxForm.groupName.trim()
-    ) {
-      alert("Please fill in both description and group name.");
-      return;
-    }
-
-    try {
-      // Convert refs to the format expected by the API
-      let refsToSave = newParadoxRefs;
-
-      // If we have only one key called "References", convert to array format
-      if (
-        Object.keys(newParadoxRefs).length === 1 &&
-        newParadoxRefs["References"]
-      ) {
-        refsToSave = newParadoxRefs["References"];
-      }
-
-      const response = await fetch(`${API_BASE}/paradoxes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          description: newParadoxForm.description.trim(),
-          group_name: newParadoxForm.groupName.trim(),
-          refs: refsToSave,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create paradox");
-      }
-
-      // Refresh paradoxes data
-      const refreshResponse = await fetch(`${API_BASE}/paradoxes`);
-      const data = await refreshResponse.json();
-      console.log("Refreshed paradoxes data:", data);
-      setParadoxes(data);
-
-      // Force a re-render by updating the state
-      setTimeout(() => {
-        console.log("Current paradoxes state:", paradoxes);
-        console.log("Filtered paradoxes:", filteredParadoxes);
-      }, 100);
-
-      // Reset form
-      setNewParadoxForm({
-        visible: false,
-        description: "",
-        groupName: "",
-        refs: {},
-      });
-      setNewParadoxRefs({});
-      setNewParadoxRefKey("");
-      setNewParadoxRefValue("");
-
-      alert(
-        "Paradox created successfully! Please wait a moment for it to appear in the diagram.",
-      );
-    } catch (error) {
-      console.error("Error creating paradox:", error);
-      alert("Failed to create paradox. Please try again.");
-    }
-  };
-
-  const handleNewParadoxCancel = () => {
-    setNewParadoxForm({
-      visible: false,
-      description: "",
-      groupName: "",
-      refs: {},
-    });
-    setNewParadoxRefs({});
-    setNewParadoxRefKey("");
-    setNewParadoxRefValue("");
-  };
-
-  const handleAddNewParadoxRefKey = () => {
-    if (newParadoxRefKey.trim() && newParadoxRefValue.trim()) {
-      setNewParadoxRefs({
-        ...newParadoxRefs,
-        [newParadoxRefKey.trim()]: [newParadoxRefValue.trim()],
-      });
-      setNewParadoxRefKey("");
-      setNewParadoxRefValue("");
-    }
-  };
-
-  const handleRemoveNewParadoxRefKey = (key) => {
-    const newRefs = { ...newParadoxRefs };
-    delete newRefs[key];
-    setNewParadoxRefs(newRefs);
-  };
-
-  const handleAddRefToNewParadoxKey = (key, ref) => {
-    if (ref.trim()) {
-      // Split by comma and clean up each reference
-      const refs = ref
-        .split(",")
-        .map((r) => r.trim())
-        .filter((r) => r.length > 0);
-      setNewParadoxRefs({
-        ...newParadoxRefs,
-        [key]: [...(newParadoxRefs[key] || []), ...refs],
-      });
-    }
-  };
-
-  const handleRemoveRefFromNewParadoxKey = (key, refIndex) => {
-    setNewParadoxRefs({
-      ...newParadoxRefs,
-      [key]: newParadoxRefs[key].filter((_, index) => index !== refIndex),
-    });
-  };
 
   // Filtering logic
   const filteredParadoxes = paradoxes.filter((par) => {
@@ -1819,133 +1512,6 @@ const Flare = () => {
               left: 0,
             }}
           />
-
-          {/* Context Menu */}
-          {contextMenu.visible && (
-            <div
-              className="paradox-context-menu"
-              style={{
-                position: "absolute",
-                top: contextMenu.y,
-                left: contextMenu.x,
-                zIndex: 10000,
-                background: "#fff",
-                border: "1px solid #ccc",
-                padding: "8px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-                display: "flex",
-                flexDirection: "row",
-                gap: "8px",
-                borderRadius: "6px",
-                minWidth: "200px",
-                maxWidth: "300px",
-                overflow: "visible",
-                pointerEvents: "auto",
-              }}
-            >
-              <button
-                onClick={() => handleNewParadox()}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#4caf50",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  padding: "6px 10px",
-                  borderRadius: "4px",
-                  transition: "background-color 0.2s",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f1f8e9")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
-                title="Create New Paradox"
-              >
-                New Paradox
-              </button>
-              <button
-                onClick={() => handleEditParadox(contextMenu.paradox)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#2196f3",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  padding: "6px 10px",
-                  borderRadius: "4px",
-                  transition: "background-color 0.2s",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f0f8ff")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
-                title="Edit Paradox"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleRename(contextMenu.paradox)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#2196f3",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  padding: "6px 10px",
-                  borderRadius: "4px",
-                  transition: "background-color 0.2s",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#f0f8ff")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
-                title="Rename Paradox"
-              >
-                Rename
-              </button>
-
-              <button
-                onClick={() => handleDelete(contextMenu.paradox)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#f44336",
-                  fontSize: "12px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                  padding: "6px 10px",
-                  borderRadius: "4px",
-                  transition: "background-color 0.2s",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) =>
-                  (e.target.style.backgroundColor = "#ffebee")
-                }
-                onMouseLeave={(e) =>
-                  (e.target.style.backgroundColor = "transparent")
-                }
-                title="Delete Paradox"
-              >
-                Delete
-              </button>
-            </div>
-          )}
         </div>
       </div>
       {(() => {
@@ -2403,20 +1969,12 @@ const Flare = () => {
         setNewRefKey={setNewRefKey}
         newRefValue={newRefValue}
         setNewRefValue={setNewRefValue}
-        handleEditParadoxSubmit={handleEditParadoxSubmit}
-        handleEditParadoxCancel={handleEditParadoxCancel}
-        handleAddRefKey={handleAddRefKey}
-        handleRemoveRefKey={handleRemoveRefKey}
-        handleAddRefToKey={handleAddRefToKey}
-        handleRemoveRefFromKey={handleRemoveRefFromKey}
       />
       {/* Rename form */}
       <RenameParadoxForm
         editingNode={editingNode}
         editName={editName}
         setEditName={setEditName}
-        handleRenameSubmit={handleRenameSubmit}
-        handleRenameCancel={handleRenameCancel}
       />
       {/* New Paradox Form */}
       <NewParadoxForm
@@ -2428,12 +1986,6 @@ const Flare = () => {
         setNewParadoxRefKey={setNewParadoxRefKey}
         newParadoxRefValue={newParadoxRefValue}
         setNewParadoxRefValue={setNewParadoxRefValue}
-        handleNewParadoxSubmit={handleNewParadoxSubmit}
-        handleNewParadoxCancel={handleNewParadoxCancel}
-        handleAddNewParadoxRefKey={handleAddNewParadoxRefKey}
-        handleRemoveNewParadoxRefKey={handleRemoveNewParadoxRefKey}
-        handleAddRefToNewParadoxKey={handleAddRefToNewParadoxKey}
-        handleRemoveRefFromNewParadoxKey={handleRemoveRefFromNewParadoxKey}
       />
     </div>
   );

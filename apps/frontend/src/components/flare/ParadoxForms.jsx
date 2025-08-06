@@ -5,17 +5,10 @@ export function EditParadoxForm({
   editParadoxForm,
   setEditParadoxForm,
   editingRefs,
-  setEditingRefs,
   newRefKey,
   setNewRefKey,
   newRefValue,
   setNewRefValue,
-  handleEditParadoxSubmit,
-  handleEditParadoxCancel,
-  handleAddRefKey,
-  handleRemoveRefKey,
-  handleAddRefToKey,
-  handleRemoveRefFromKey,
 }) {
   if (!editParadoxForm.visible) return null;
   return (
@@ -281,13 +274,7 @@ export function EditParadoxForm({
 }
 
 // Rename Paradox Form
-export function RenameParadoxForm({
-  editingNode,
-  editName,
-  setEditName,
-  handleRenameSubmit,
-  handleRenameCancel,
-}) {
+export function RenameParadoxForm({ editingNode, editName, setEditName }) {
   if (!editingNode) return null;
   return (
     <div
@@ -370,17 +357,10 @@ export function NewParadoxForm({
   newParadoxForm,
   setNewParadoxForm,
   newParadoxRefs,
-  setNewParadoxRefs,
   newParadoxRefKey,
   setNewParadoxRefKey,
   newParadoxRefValue,
   setNewParadoxRefValue,
-  handleNewParadoxSubmit,
-  handleNewParadoxCancel,
-  handleAddNewParadoxRefKey,
-  handleRemoveNewParadoxRefKey,
-  handleAddRefToNewParadoxKey,
-  handleRemoveRefFromNewParadoxKey,
 }) {
   if (!newParadoxForm.visible) return null;
   return (
