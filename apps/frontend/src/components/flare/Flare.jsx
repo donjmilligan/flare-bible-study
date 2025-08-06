@@ -1,6 +1,26 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import * as d3 from "d3";
+
 import "./Flare.css";
+import BibleTextDisplay from "./BibleTextDisplay";
+import {
+  EditParadoxForm,
+  RenameParadoxForm,
+  NewParadoxForm,
+} from "./ParadoxForms";
+import {
+  getArcColor,
+  normalizeRef,
+  extractBookAndChapter,
+  getAbsoluteChapterIndex,
+  flatRefs,
+} from "./flareUtils";
 
 const API_BASE = "http://localhost:3001/api/bible";
 
@@ -50,113 +70,6 @@ const TRANSLATIONS = [
   { value: "ylt", label: "Young's Literal Translation" },
 ];
 
-function getArcColor(color, start, end) {
-  if (color === "Blue") return "#1D84B2";
-  if (color === "Purple") return "#6e4b91";
-  if (color === "Black") return "#444";
-  if (color === "Rainbow") {
-    const distance = Math.abs(end - start);
-    return d3.hsl((distance / 1189) * 360, 0.7, 0.35);
-  }
-  return "#1D84B2";
-}
-
-function normalizeRef(ref) {
-  return (ref || "")
-    .replace(/([a-zA-Z])([0-9])/g, "$1 $2")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function extractBookAndChapter(ref) {
-  // More robust regex pattern similar to the old implementation
-  const parts = /^(\d?\s?[a-z]+)[\s.:]*(\d*):?(\d*)[-]?(\d*)/i.exec(ref);
-  if (parts && parts[1] && parts[2]) {
-    return `${parts[1].replace(/\s+/g, " ").trim()} ${parts[2]}`;
-  }
-
-  // Fallback patterns for edge cases
-  // Try to match e.g. "Genesis 2:1-3" or "Genesis 2:1"
-  const match = (ref || "").match(/^([1-3]?\s*[A-Za-z ]+)\s+(\d+):/);
-  if (match) {
-    return `${match[1].replace(/\s+/g, " ").trim()} ${match[2]}`;
-  }
-  // Try to match "Genesis 2"
-  const match2 = (ref || "").match(/^([1-3]?\s*[A-Za-z ]+)\s+(\d+)/);
-  if (match2) {
-    return `${match2[1].replace(/\s+/g, " ").trim()} ${match2[2]}`;
-  }
-  // Try to match "Genesis2:1" (no space)
-  const match3 = (ref || "").match(/^([1-3]?\s*[A-Za-z]+)(\d+):/);
-  if (match3) {
-    return `${match3[1].replace(/\s+/g, " ").trim()} ${match3[2]}`;
-  }
-  // Try to match "Genesis2" (no space)
-  const match4 = (ref || "").match(/^([1-3]?\s*[A-Za-z]+)(\d+)/);
-  if (match4) {
-    return `${match4[1].replace(/\s+/g, " ").trim()} ${match4[2]}`;
-  }
-  return null;
-}
-
-// Improved function to get absolute chapter index (like the old getAbsoluteChapter)
-function getAbsoluteChapterIndex(ref, chapters) {
-  const extracted = extractBookAndChapter(ref);
-  if (!extracted) return null;
-
-  const normalizedRef = normalizeRef(extracted);
-
-  // Try exact match first
-  let chapterIndex = chapters.findIndex(
-    (ch) => normalizeRef(ch.name) === normalizedRef,
-  );
-
-  // If no exact match, try to match just the book name and chapter number
-  if (chapterIndex === -1) {
-    const parts = extracted.split(" ");
-    const chapterNum = parts[parts.length - 1];
-    const bookName = parts.slice(0, -1).join(" ");
-
-    // Try to find a chapter that matches the book and chapter number
-    chapterIndex = chapters.findIndex((ch) => {
-      const chParts = ch.name.split(" ");
-      const chChapterNum = chParts[chParts.length - 1];
-      const chBookName = chParts.slice(0, -1).join(" ");
-
-      return (
-        normalizeRef(chBookName) === normalizeRef(bookName) &&
-        chChapterNum === chapterNum
-      );
-    });
-  }
-
-  console.log(
-    `getAbsoluteChapterIndex: "${ref}" -> "${extracted}" -> "${normalizedRef}" -> index: ${chapterIndex}`,
-  );
-  return chapterIndex >= 0 ? chapterIndex : null;
-}
-
-// Improved function to flatten refs (like the old flatRefs function)
-function flatRefs(refs) {
-  if (Array.isArray(refs)) {
-    return refs;
-  } else if (typeof refs === "object" && refs !== null) {
-    // This is an object with more info, so let's pull out all the refs
-    const refList = [];
-    const keys = Object.keys(refs);
-    for (let i = 0; i < keys.length; i++) {
-      if (Array.isArray(refs[keys[i]])) {
-        for (let j = 0; j < refs[keys[i]].length; j++) {
-          refList.push(refs[keys[i]][j]);
-        }
-      }
-    }
-    return refList;
-  }
-  return [];
-}
-
 const Flare = () => {
   const [translations, setTranslations] = useState(TRANSLATIONS);
   const [translation, setTranslation] = useState("kjv");
@@ -171,8 +84,101 @@ const Flare = () => {
   const arcSvgRef = useRef();
   // Add a state for the currently clicked arc's chapters
   const [clickedArcChapters, setClickedArcChapters] = useState([]);
+  const [selectedArcInfo, setSelectedArcInfo] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [textSize, setTextSize] = useState(12);
   const mediumWidth = 900;
   const mediumHeight = 400;
+
+  // Add editability state variables
+  const [contextMenu, setContextMenu] = useState({
+    visible: false,
+    x: 0,
+    y: 0,
+    paradox: null,
+  });
+  const [editParadoxForm, setEditParadoxForm] = useState({
+    visible: false,
+    paradox: null,
+    description: "",
+    groupName: "",
+    refs: {},
+  });
+  const [editingRefs, setEditingRefs] = useState({});
+  const [newRefKey, setNewRefKey] = useState("");
+  const [newRefValue, setNewRefValue] = useState("");
+
+  // Add new state for delete, rename functionality
+  const [editingNode, setEditingNode] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [selectedParadox, setSelectedParadox] = useState(null);
+
+  // Add new state for creating new paradoxes
+  const [newParadoxForm, setNewParadoxForm] = useState({
+    visible: false,
+    description: "",
+    groupName: "",
+    refs: {},
+  });
+  const [newParadoxRefs, setNewParadoxRefs] = useState({});
+  const [newParadoxRefKey, setNewParadoxRefKey] = useState("");
+  const [newParadoxRefValue, setNewParadoxRefValue] = useState("");
+
+  // Zoom control functions - same as OldTestamentJesus1
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5));
+  }, []);
+
+  const handleTextSize = useCallback((event) => {
+    const change = event.detail;
+    setTextSize((prev) => Math.max(8, Math.min(prev + change, 20)));
+  }, []);
+
+  // Event listeners for zoom and text size (same as OldTestamentJesus1)
+  useEffect(() => {
+    window.addEventListener("d3-zoom-in", handleZoomIn);
+    window.addEventListener("d3-zoom-out", handleZoomOut);
+    window.addEventListener("d3-text-size", handleTextSize);
+
+    return () => {
+      window.removeEventListener("d3-zoom-in", handleZoomIn);
+      window.removeEventListener("d3-zoom-out", handleZoomOut);
+      window.removeEventListener("d3-text-size", handleTextSize);
+    };
+  }, [handleZoomIn, handleZoomOut, handleTextSize]);
+
+  // Hide context menu on click elsewhere
+  useEffect(() => {
+    if (!contextMenu.visible) return;
+    const handleClick = (event) => {
+      // Don't close if clicking on the context menu itself
+      if (event.target.closest(".paradox-context-menu")) return;
+      setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+      }
+    };
+    const handleRightClick = (event) => {
+      // Close context menu on any right-click outside of it
+      if (!event.target.closest(".paradox-context-menu")) {
+        setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+      }
+    };
+    window.addEventListener("click", handleClick);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("contextmenu", handleRightClick);
+    return () => {
+      window.removeEventListener("click", handleClick);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("contextmenu", handleRightClick);
+    };
+  }, [contextMenu]);
 
   // Fetch books and chapters on translation change
   useEffect(() => {
@@ -201,14 +207,12 @@ const Flare = () => {
                 ? allChapters[i]
                 : [];
               chaptersList.forEach((ch) => {
-                // Extract chapter number from name field (e.g., "Chapter 1" -> 1)
                 let chapterNum = 1;
                 if (ch.name) {
                   const match = ch.name.match(/Chapter\s+(\d+)/i);
                   if (match) {
                     chapterNum = parseInt(match[1]);
                   } else {
-                    // Try to extract number from any format
                     const numMatch = ch.name.match(/(\d+)/);
                     if (numMatch) {
                       chapterNum = parseInt(numMatch[1]);
@@ -241,57 +245,421 @@ const Flare = () => {
       .catch((err) => setError("Failed to fetch books: " + err.message));
   }, [translation]);
 
-  // Fetch paradoxes (relationships) from API
+  // Set default Sabbath selection when paradoxes are loaded
+  useEffect(() => {
+    if (paradoxes.length > 0 && !selectedArcInfo) {
+      const sabbathParadox = paradoxes.find((p) =>
+        (p.description || p.desc || "").toLowerCase().includes("sabbath"),
+      );
+
+      if (sabbathParadox) {
+        const sabbathRefs = flatRefs(sabbathParadox.refs);
+        setClickedArcChapters(sabbathRefs);
+        setSelectedArcInfo({
+          description:
+            sabbathParadox.description ||
+            sabbathParadox.desc ||
+            "The Seventh Day Sabbath",
+          chapters: sabbathRefs,
+          paradoxId: sabbathParadox.id || "sabbath",
+        });
+      }
+    }
+  }, [paradoxes, selectedArcInfo]);
+
+  // Fetch paradoxes data
   useEffect(() => {
     fetch(`${API_BASE}/paradoxes`)
       .then((res) => res.json())
       .then((data) => {
-        console.log("Raw paradoxes data from API:", data);
         if (Array.isArray(data) && data.length > 0) {
-          setParadoxes(data);
+          const processedData = data.map((paradox) => {
+            if (typeof paradox.refs === "string") {
+              try {
+                paradox.refs = JSON.parse(paradox.refs);
+              } catch (e) {
+                console.error("Failed to parse refs for paradox:", paradox);
+              }
+            }
+            if (typeof paradox.refs === "object" && paradox.refs !== null) {
+              console.log("Paradox refs structure:", paradox.refs);
+            }
+            return paradox;
+          });
+          setParadoxes(processedData);
         } else {
           console.log("No paradoxes from API, using sample data for testing");
-          // Use sample data for testing if API doesn't return data
-          setParadoxes([
+          // Add sample data for testing
+          const sampleData = [
             {
-              group_name: "Test",
-              description: "Test Paradox",
-              refs: ["Genesis 1", "Genesis 2", "Exodus 1"],
-              url: "",
+              id: 1,
+              description: "The Seventh Day Sabbath",
+              group_name: "sab",
+              refs: {
+                "God is Lord of the Sabbath, it is a sign of his people, all people.":
+                  [
+                    "Mark 2:27",
+                    "Luke 6:1-5",
+                    "Matthew 12:1-8",
+                    "Revelation 1:9-10",
+                    "Genesis 2:1-3",
+                    "Exodus 31:13",
+                    "Isaiah 56:1-8",
+                    "Ezekiel 20:12",
+                    "Acts 13:42-44",
+                    "John 14:15-24",
+                  ],
+                "The First Angels Message is regarding the Sabbath. It says worship him as creator, and he created the seventh day Sabbath for this purpose.":
+                  ["Revelation 14:6-7", "Hebrews 4:9"],
+              },
             },
-            {
-              group_name: "Test2",
-              description: "Another Test Paradox",
-              refs: ["Genesis 3", "Exodus 2", "Leviticus 1"],
-              url: "",
-            },
-          ]);
+          ];
+          setParadoxes(sampleData);
         }
       })
       .catch((err) => {
         console.error("Error fetching paradoxes:", err);
-        console.log("Using sample paradox data due to API error");
-        setParadoxes([
+        // Add sample data on error
+        const sampleData = [
           {
-            group_name: "Test",
-            description: "Test Paradox",
-            refs: ["Genesis 1", "Genesis 2", "Exodus 1"],
-            url: "",
+            id: 1,
+            description: "The Seventh Day Sabbath",
+            group_name: "sab",
+            refs: {
+              "God is Lord of the Sabbath, it is a sign of his people, all people.":
+                [
+                  "Mark 2:27",
+                  "Luke 6:1-5",
+                  "Matthew 12:1-8",
+                  "Revelation 1:9-10",
+                  "Genesis 2:1-3",
+                  "Exodus 31:13",
+                  "Isaiah 56:1-8",
+                  "Ezekiel 20:12",
+                  "Acts 13:42-44",
+                  "John 14:15-24",
+                ],
+              "The First Angels Message is regarding the Sabbath. It says worship him as creator, and he created the seventh day Sabbath for this purpose.":
+                ["Revelation 14:6-7", "Hebrews 4:9"],
+            },
           },
-          {
-            group_name: "Test2",
-            description: "Another Test Paradox",
-            refs: ["Genesis 3", "Exodus 2", "Leviticus 1"],
-            url: "",
-          },
-        ]);
+        ];
+        setParadoxes(sampleData);
       });
   }, []);
 
+  // Edit paradox handlers
+  const handleEditParadox = (paradox) => {
+    // Handle both array and object formats for refs
+    let refsToEdit = {};
+
+    if (Array.isArray(paradox.refs)) {
+      // Convert array format to object format for editing
+      refsToEdit = {
+        References: paradox.refs,
+      };
+    } else if (typeof paradox.refs === "object" && paradox.refs !== null) {
+      // Already in object format
+      refsToEdit = paradox.refs;
+    }
+
+    setEditParadoxForm({
+      visible: true,
+      paradox: paradox,
+      description: paradox.description || paradox.desc || "",
+      groupName: paradox.group_name || "",
+      refs: refsToEdit,
+    });
+    setEditingRefs(refsToEdit);
+    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+  };
+
+  const handleEditParadoxSubmit = async () => {
+    if (!editParadoxForm.paradox) return;
+
+    try {
+      // Convert refs back to original format if needed
+      let refsToSave = editingRefs;
+
+      // If the original was an array and we only have one key called "References",
+      // convert back to array format
+      if (
+        Array.isArray(editParadoxForm.paradox.refs) &&
+        Object.keys(editingRefs).length === 1 &&
+        editingRefs["References"]
+      ) {
+        refsToSave = editingRefs["References"];
+      }
+
+      // Update the paradox via API
+      await fetch(`${API_BASE}/paradoxes/${editParadoxForm.paradox.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: editParadoxForm.description,
+          group_name: editParadoxForm.groupName,
+          refs: refsToSave,
+        }),
+      });
+
+      // Refresh paradoxes data
+      const response = await fetch(`${API_BASE}/paradoxes`);
+      const data = await response.json();
+      setParadoxes(data);
+
+      setEditParadoxForm({
+        visible: false,
+        paradox: null,
+        description: "",
+        groupName: "",
+        refs: {},
+      });
+      setEditingRefs({});
+    } catch (error) {
+      console.error("Error updating paradox:", error);
+      alert("Failed to update paradox. Please try again.");
+    }
+  };
+
+  const handleEditParadoxCancel = () => {
+    setEditParadoxForm({
+      visible: false,
+      paradox: null,
+      description: "",
+      groupName: "",
+      refs: {},
+    });
+    setEditingRefs({});
+  };
+
+  const handleAddRefKey = () => {
+    if (newRefKey.trim() && newRefValue.trim()) {
+      setEditingRefs({
+        ...editingRefs,
+        [newRefKey.trim()]: [newRefValue.trim()],
+      });
+      setNewRefKey("");
+      setNewRefValue("");
+    }
+  };
+
+  const handleRemoveRefKey = (key) => {
+    const newRefs = { ...editingRefs };
+    delete newRefs[key];
+    setEditingRefs(newRefs);
+  };
+
+  const handleAddRefToKey = (key, ref) => {
+    if (ref.trim()) {
+      // Split by comma and clean up each reference
+      const refs = ref
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
+      setEditingRefs({
+        ...editingRefs,
+        [key]: [...(editingRefs[key] || []), ...refs],
+      });
+    }
+  };
+
+  const handleRemoveRefFromKey = (key, refIndex) => {
+    setEditingRefs({
+      ...editingRefs,
+      [key]: editingRefs[key].filter((_, index) => index !== refIndex),
+    });
+  };
+
+  // Add handlers for insert, delete, rename functionality
+  const handleRename = (paradox) => {
+    setEditName(paradox.description || "");
+    setEditingNode(paradox);
+    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!editingNode || !editName.trim()) return;
+
+    try {
+      // Update the paradox description via API
+      await fetch(`${API_BASE}/paradoxes/${editingNode.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: editName.trim(),
+          group_name: editingNode.group_name || "",
+          refs: editingNode.refs || {},
+        }),
+      });
+
+      // Refresh paradoxes data
+      const response = await fetch(`${API_BASE}/paradoxes`);
+      const data = await response.json();
+      setParadoxes(data);
+
+      setEditingNode(null);
+      setEditName("");
+    } catch (error) {
+      console.error("Error renaming paradox:", error);
+      alert("Failed to rename paradox. Please try again.");
+    }
+  };
+
+  const handleRenameCancel = () => {
+    setEditingNode(null);
+    setEditName("");
+  };
+
+  const handleDelete = async (paradox) => {
+    if (!window.confirm(`Delete paradox: ${paradox.description}?`)) return;
+
+    try {
+      await fetch(`${API_BASE}/paradoxes/${paradox.id}`, {
+        method: "DELETE",
+      });
+      setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+
+      // Refresh paradoxes data
+      const response = await fetch(`${API_BASE}/paradoxes`);
+      const data = await response.json();
+      setParadoxes(data);
+    } catch (error) {
+      console.error("Error deleting paradox:", error);
+      alert("Failed to delete paradox. Please try again.");
+    }
+  };
+
+  // New paradox handlers
+  const handleNewParadox = () => {
+    setNewParadoxForm({
+      visible: true,
+      description: "",
+      groupName: "",
+      refs: {},
+    });
+    setNewParadoxRefs({});
+    setContextMenu({ visible: false, x: 0, y: 0, paradox: null });
+  };
+
+  const handleNewParadoxSubmit = async () => {
+    if (
+      !newParadoxForm.description.trim() ||
+      !newParadoxForm.groupName.trim()
+    ) {
+      alert("Please fill in both description and group name.");
+      return;
+    }
+
+    try {
+      // Convert refs to the format expected by the API
+      let refsToSave = newParadoxRefs;
+
+      // If we have only one key called "References", convert to array format
+      if (
+        Object.keys(newParadoxRefs).length === 1 &&
+        newParadoxRefs["References"]
+      ) {
+        refsToSave = newParadoxRefs["References"];
+      }
+
+      const response = await fetch(`${API_BASE}/paradoxes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: newParadoxForm.description.trim(),
+          group_name: newParadoxForm.groupName.trim(),
+          refs: refsToSave,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create paradox");
+      }
+
+      // Refresh paradoxes data
+      const refreshResponse = await fetch(`${API_BASE}/paradoxes`);
+      const data = await refreshResponse.json();
+      console.log("Refreshed paradoxes data:", data);
+      setParadoxes(data);
+
+      // Force a re-render by updating the state
+      setTimeout(() => {
+        console.log("Current paradoxes state:", paradoxes);
+        console.log("Filtered paradoxes:", filteredParadoxes);
+      }, 100);
+
+      // Reset form
+      setNewParadoxForm({
+        visible: false,
+        description: "",
+        groupName: "",
+        refs: {},
+      });
+      setNewParadoxRefs({});
+      setNewParadoxRefKey("");
+      setNewParadoxRefValue("");
+
+      alert(
+        "Paradox created successfully! Please wait a moment for it to appear in the diagram.",
+      );
+    } catch (error) {
+      console.error("Error creating paradox:", error);
+      alert("Failed to create paradox. Please try again.");
+    }
+  };
+
+  const handleNewParadoxCancel = () => {
+    setNewParadoxForm({
+      visible: false,
+      description: "",
+      groupName: "",
+      refs: {},
+    });
+    setNewParadoxRefs({});
+    setNewParadoxRefKey("");
+    setNewParadoxRefValue("");
+  };
+
+  const handleAddNewParadoxRefKey = () => {
+    if (newParadoxRefKey.trim() && newParadoxRefValue.trim()) {
+      setNewParadoxRefs({
+        ...newParadoxRefs,
+        [newParadoxRefKey.trim()]: [newParadoxRefValue.trim()],
+      });
+      setNewParadoxRefKey("");
+      setNewParadoxRefValue("");
+    }
+  };
+
+  const handleRemoveNewParadoxRefKey = (key) => {
+    const newRefs = { ...newParadoxRefs };
+    delete newRefs[key];
+    setNewParadoxRefs(newRefs);
+  };
+
+  const handleAddRefToNewParadoxKey = (key, ref) => {
+    if (ref.trim()) {
+      // Split by comma and clean up each reference
+      const refs = ref
+        .split(",")
+        .map((r) => r.trim())
+        .filter((r) => r.length > 0);
+      setNewParadoxRefs({
+        ...newParadoxRefs,
+        [key]: [...(newParadoxRefs[key] || []), ...refs],
+      });
+    }
+  };
+
+  const handleRemoveRefFromNewParadoxKey = (key, refIndex) => {
+    setNewParadoxRefs({
+      ...newParadoxRefs,
+      [key]: newParadoxRefs[key].filter((_, index) => index !== refIndex),
+    });
+  };
+
   // Filtering logic
   const filteredParadoxes = paradoxes.filter((par) => {
-    console.log(`Filtering paradox: "${par.description || par.desc}"`);
-
     if (subject !== "All") {
       const desc = (par.description || par.desc || "").toLowerCase();
       const group = (par.group_name || "").toLowerCase();
@@ -299,14 +667,12 @@ const Flare = () => {
         !desc.includes(subject.toLowerCase()) &&
         !group.includes(subject.toLowerCase())
       ) {
-        console.log(`  - Filtered out by subject: ${subject}`);
         return false;
       }
     }
     if (selectedBook && books.length > 0) {
       const bookObj = books.find((b) => String(b.id) === String(selectedBook));
       if (!bookObj) {
-        console.log(`  - Filtered out: book not found for id ${selectedBook}`);
         return false;
       }
       const bookName = (bookObj.short_name || bookObj.name || "").toLowerCase();
@@ -318,11 +684,9 @@ const Flare = () => {
       }
       const hasBook = refs.some((ref) => ref.toLowerCase().includes(bookName));
       if (!hasBook) {
-        console.log(`  - Filtered out: no references to book ${bookName}`);
         return false;
       }
     }
-    console.log(`  - Passed filtering`);
     return true;
   });
 
@@ -340,32 +704,39 @@ const Flare = () => {
   useEffect(() => {
     if (!chapters.length || !books.length) return;
 
+    console.log("=== ARC CREATION DEBUG ===");
+    console.log("Chapters available:", chapters.length);
+    console.log("Books available:", books.length);
+    console.log("Filtered paradoxes:", filteredParadoxes.length);
+    console.log("All paradoxes:", paradoxes.length);
     console.log(
-      "Available chapters:",
-      chapters.map((ch) => ch.name),
-    );
-    console.log(
-      "Available books:",
-      books.map((b) => b.short_name),
+      "All paradoxes details:",
+      paradoxes.map((p) => ({
+        id: p.id,
+        description: p.description,
+        refs: p.refs,
+      })),
     );
 
     // Prepare arc data (between chapters based on paradoxes)
     const arcLinks = [];
-    console.log("Creating arcs from", filteredParadoxes.length, "paradoxes");
-
     filteredParadoxes.forEach((par, pi) => {
+      console.log(`Processing paradox ${pi}:`, par.description);
+      console.log("Paradox refs:", par.refs);
+
       // Use the improved flatRefs function to handle both array and object structures
       const refs = flatRefs(par.refs);
-
-      console.log(`Paradox ${pi}:`, par.description || par.desc, "refs:", refs);
+      console.log("Flattened refs:", refs);
 
       // Get absolute chapter indices for all references in this paradox
       const chapterIndices = refs
         .map((ref) => {
-          const extracted = extractBookAndChapter(ref);
-          const index = getAbsoluteChapterIndex(ref, chapters);
+          // Clean up the reference first
+          const cleanRef = ref.trim();
+          const extracted = extractBookAndChapter(cleanRef);
+          const index = getAbsoluteChapterIndex(cleanRef, chapters);
           console.log(
-            `Ref: "${ref}" -> extracted: "${extracted}" -> index: ${index}`,
+            `Ref: "${cleanRef}" -> extracted: "${extracted}" -> index: ${index}`,
           );
           return index;
         })
@@ -374,26 +745,31 @@ const Flare = () => {
         );
 
       console.log(`Paradox ${pi} chapterIndices:`, chapterIndices);
+      console.log(
+        `Paradox ${pi} valid refs:`,
+        refs.filter((ref, i) => {
+          const extracted = extractBookAndChapter(ref);
+          const index = getAbsoluteChapterIndex(ref, chapters);
+          return index !== null && index >= 0 && index < chapters.length;
+        }),
+      );
 
       // Remove duplicates and sort
       const uniqueChapterIndexes = [...new Set(chapterIndices)].sort(
         (a, b) => a - b,
       );
+      const sortedChapters = uniqueChapterIndexes.sort((a, b) => a - b);
 
-      console.log(`Paradox ${pi} uniqueChapterIndexes:`, uniqueChapterIndexes);
+      console.log(`Paradox ${pi} sortedChapters:`, sortedChapters);
 
-      // Create arcs between consecutive chapters that share this paradox (like the old implementation)
-      for (let i = 0; i < uniqueChapterIndexes.length - 1; i++) {
-        const start = uniqueChapterIndexes[i];
-        const end = uniqueChapterIndexes[i + 1];
-
-        // Re-order if start > end (like the old implementation)
-        const finalStart = start > end ? end : start;
-        const finalEnd = start > end ? start : end;
+      // Create a chain of connections: connect each chapter to the next one
+      for (let i = 0; i < sortedChapters.length - 1; i++) {
+        const start = sortedChapters[i];
+        const end = sortedChapters[i + 1];
 
         arcLinks.push({
-          source: finalStart,
-          target: finalEnd,
+          source: start,
+          target: end,
           desc: par.description || par.desc,
           group: par.group_name,
           refs: refs,
@@ -402,9 +778,77 @@ const Flare = () => {
           endVerse: refs[i + 1] || "",
         });
       }
+      if (sortedChapters.length > 2) {
+        const first = sortedChapters[0];
+        const last = sortedChapters[sortedChapters.length - 1];
+
+        arcLinks.push({
+          source: first,
+          target: last,
+          desc: par.description || par.desc,
+          group: par.group_name,
+          refs: refs,
+          paradoxId: par.id || pi,
+          startVerse: refs[0] || "",
+          endVerse: refs[refs.length - 1] || "",
+        });
+      }
     });
 
     console.log("Final arcLinks:", arcLinks);
+    console.log("=== END ARC CREATION DEBUG ===");
+
+    // DEBUG: Show available chapters
+    console.log("=== CHAPTERS DEBUG ===");
+    console.log(
+      "First 10 chapters:",
+      chapters.slice(0, 10).map((ch) => ch.name),
+    );
+    console.log(
+      "Last 10 chapters:",
+      chapters.slice(-10).map((ch) => ch.name),
+    );
+    console.log("Total chapters:", chapters.length);
+    console.log("=== END CHAPTERS DEBUG ===");
+
+    // DEBUG: Check for Sabbath paradox at the end
+    console.log("=== SABBATH PARADOX DEBUG ===");
+    const sabbathParadox = filteredParadoxes.find((p) =>
+      (p.description || p.desc || "").toLowerCase().includes("sabbath"),
+    );
+    if (sabbathParadox) {
+      console.log(
+        "Sabbath paradox found:",
+        sabbathParadox.description || sabbathParadox.desc,
+      );
+      const sabbathRefs = flatRefs(sabbathParadox.refs);
+      console.log("Sabbath refs:", sabbathRefs);
+      console.log(
+        "Has Revelation 1:9:",
+        sabbathRefs.some((ref) => ref.includes("Revelation 1:9")),
+      );
+      console.log(
+        "Has Genesis 2:1:",
+        sabbathRefs.some((ref) => ref.includes("Genesis 2:1")),
+      );
+      console.log("Total Sabbath refs:", sabbathRefs.length);
+
+      // Check specific chapter indices
+      const revelationIndex = getAbsoluteChapterIndex(
+        "Revelation 1:9-10",
+        chapters,
+      );
+      const genesisIndex = getAbsoluteChapterIndex("Genesis 2:1-3", chapters);
+      console.log("Revelation 1 chapter index:", revelationIndex);
+      console.log("Genesis 2 chapter index:", genesisIndex);
+      console.log(
+        "Chapters between them:",
+        chapters.slice(genesisIndex, revelationIndex + 1).map((ch) => ch.name),
+      );
+    } else {
+      console.log("No Sabbath paradox found in filtered paradoxes");
+    }
+    console.log("=== END SABBATH DEBUG ===");
 
     // Add a test arc to verify rendering works
     if (arcLinks.length === 0 && chapters.length > 1) {
@@ -440,17 +884,34 @@ const Flare = () => {
       }
     }
 
+    // Always add a test arc to verify rendering is working
+    if (chapters.length > 1) {
+      console.log("Adding test arc to verify rendering works");
+      arcLinks.push({
+        source: 0,
+        target: Math.min(10, chapters.length - 1),
+        desc: "Test Arc - Should Always Appear",
+        group: "Test",
+        refs: ["Test"],
+        paradoxId: "test-always",
+        startVerse: "Test",
+        endVerse: "Test",
+      });
+    }
+
     console.log("Final arcLinks after test:", arcLinks);
 
     // D3 rendering for horizontal arc diagram (bars per chapter, thin bars, arcs above)
     const margin = { top: 20, right: 40, bottom: 40, left: 40 };
     const barWidth = 1.2; // very thin bars
     const barHeight = 100;
-    const width =
-      Math.max(mediumWidth, chapters.length * (barWidth + 0.5)) +
-      margin.left +
-      margin.right;
-    const height = 520; // Large vertical space for arcs
+
+    // Get the actual SVG dimensions
+    const svgElement = arcSvgRef.current;
+    const svgRect = svgElement.getBoundingClientRect();
+    const width = svgRect.width || 900;
+    const height = svgRect.height || 600;
+
     const x = d3
       .scaleLinear()
       .domain([0, chapters.length - 1])
@@ -458,35 +919,22 @@ const Flare = () => {
     const maxWords = d3.max(chapters, (d) => d.wordCount || 1);
     const yBar = d3.scaleLinear().domain([0, maxWords]).range([0, barHeight]);
 
-    // Bars at the very bottom, arcs start at the top of the bars
+    // Bars at the bottom, arcs start above the bars
     const barY = height - margin.bottom - barHeight;
-    const arcBaseY = barY;
+    const arcBaseY = barY; // Position arcs very close to the bars
     const yBase = barY + barHeight;
 
     const svg = d3
       .select(arcSvgRef.current)
-      .attr("width", width)
-      .attr("height", height)
+      .attr("width", "100%")
+      .attr("height", "100%")
       .attr("viewBox", [0, 0, width, height]);
     svg.selectAll("*").remove();
-
-    // Add clipPath for main chart area
-    svg
-      .append("defs")
-      .append("clipPath")
-      .attr("id", "main-clip")
-      .append("rect")
-      .attr("x", margin.left)
-      .attr("y", margin.top)
-      .attr("width", width - margin.left - margin.right)
-      .attr("height", height - margin.top - margin.bottom);
-
-    // Arc drop shadow filter
     svg.append("defs").append("filter").attr("id", "arc-shadow").html(`
         <feDropShadow dx='0' dy='2' stdDeviation='2' flood-color='#000' flood-opacity='0.18'/>
       `);
 
-    // Overlay for info display (small, above rect, follows mouse)
+    // Overlay for info display (follows mouse with fixed distance)
     let overlay = d3.select("#dashboard-overlay");
     if (overlay.empty()) {
       overlay = d3
@@ -498,66 +946,65 @@ const Flare = () => {
         .style("left", "0px")
         .style("width", "auto")
         .style("min-width", "0px")
-        .style("max-width", "320px") // reduced width
-        .style("height", "auto")
+        .style("max-width", "320px")
+        .style("height", "40px")
         .style("display", "none")
         .style("align-items", "center")
-        .style("justify-content", "center")
         .style("z-index", 9999)
         .style("background", "rgba(40,40,40,0.97)")
         .style("color", "#fff")
-        .style("padding", "7px 12px")
+        .style("padding", "5px 8px")
         .style("border-radius", "10px")
-        .style("font-size", "0.92rem")
+        .style("font-size", "0.6rem")
         .style("box-shadow", "0 2px 12px rgba(0,0,0,0.18)")
         .style("pointer-events", "none")
         .style("transition", "opacity 0.18s");
     }
-    let lastOverlayLeft = 0;
-    let lastOverlayTop = 0;
-    let overlayMoveAnimation = null;
-    function showOverlayAboveRect(html, rectX, rectY, rectWidth) {
-      d3.select("#dashboard-overlay").style("display", "flex");
-      d3.select("#dashboard-overlay").style("opacity", 1);
-      // Only update the text if it changed
-      if (d3.select("#dashboard-overlay").html() !== html) {
-        d3.select("#dashboard-overlay").html(html);
-      }
-      // Center overlay horizontally above the rect
-      const overlayNode = d3.select("#dashboard-overlay").node();
-      const overlayWidth = overlayNode.offsetWidth || 160;
-      const left = rectX + rectWidth / 2 - overlayWidth / 2;
-      const top = rectY - 38; // 38px above the rect
-      // Animate movement
-      if (overlayMoveAnimation) cancelAnimationFrame(overlayMoveAnimation);
-      function animateMove() {
-        lastOverlayLeft += (left - lastOverlayLeft) * 0.35;
-        lastOverlayTop += (top - lastOverlayTop) * 0.35;
-        d3.select("#dashboard-overlay")
-          .style("left", `${lastOverlayLeft}px`)
-          .style("top", `${lastOverlayTop}px`);
-        if (
-          Math.abs(lastOverlayLeft - left) > 1 ||
-          Math.abs(lastOverlayTop - top) > 1
-        ) {
-          overlayMoveAnimation = requestAnimationFrame(animateMove);
-        } else {
-          d3.select("#dashboard-overlay")
-            .style("left", `${left}px`)
-            .style("top", `${top}px`);
-        }
-      }
-      if (isNaN(lastOverlayLeft) || isNaN(lastOverlayTop)) {
-        lastOverlayLeft = left;
-        lastOverlayTop = top;
-        d3.select("#dashboard-overlay")
-          .style("left", `${left}px`)
-          .style("top", `${top}px`);
+
+    // Fixed distance above mouse cursor
+    const TOOLTIP_DISTANCE = 30; // pixels above mouse
+
+    function showOverlayAboveMouse(html, mouseX, mouseY, isArc = false) {
+      const overlay = d3.select("#dashboard-overlay");
+      overlay.style("display", "flex");
+      overlay.style("opacity", 1);
+
+      // Apply different styles based on whether it's an arc or chapter tooltip
+      if (isArc) {
+        // Arc tooltip - smaller, compact style
+        overlay
+          .style("width", "400px")
+          .style("height", "50px")
+          .style("font-size", "0.4rem")
+          .style("padding", "6px 8px");
       } else {
-        animateMove();
+        // Chapter tooltip - larger, detailed style
+        overlay
+          .style("width", "1200px")
+          .style("height", "80px")
+          .style("font-size", "0.8rem")
+          .style("padding", "12px 16px");
       }
+
+      // Only update the text if it changed
+      if (overlay.html() !== html) {
+        overlay.html(html);
+      }
+
+      // Position tooltip above mouse with left edge aligned
+      const overlayNode = overlay.node();
+      const overlayWidth = overlayNode.offsetWidth || (isArc ? 180 : 400);
+      const overlayHeight = overlayNode.offsetHeight || (isArc ? 40 : 80);
+
+      // Left edge of tooltip aligns with mouse cursor
+      const left = mouseX;
+      // Tooltip positioned so bottom edge is 30px above mouse cursor
+      const top = mouseY - TOOLTIP_DISTANCE - overlayHeight;
+
+      // Apply position immediately for smooth following
+      overlay.style("left", `${left}px`).style("top", `${top}px`);
     }
-    function hideOverlayAboveRect() {
+    function hideOverlay() {
       d3.select("#dashboard-overlay")
         .transition()
         .duration(120)
@@ -566,46 +1013,19 @@ const Flare = () => {
           d3.select(this).style("display", "none");
         });
     }
-    // Hide overlay only when mouse leaves the chart area
-    d3.select("#bible-chart").on("mouseleave", function () {
-      // This timeout is no longer needed as overlay follows mouse
-      // overlayHideTimeout = setTimeout(hideOverlaySmooth, 200);
-    });
+    d3.select("#bible-chart").on("mouseleave", function () {});
     d3.select("#bible-chart").on("mouseenter", function () {
       // clearTimeout(overlayHideTimeout);
     });
-
-    // D3 rendering for horizontal arc diagram (bars per chapter, thin bars, arcs above)
-    // Remove vertical centering: draw from the top
     const chartGroup = svg
       .append("g")
-      .attr("class", "zoom-group")
-      .attr("clip-path", "url(#main-clip)")
+      // .attr("clip-path", "url(#main-clip)") // Remove clip path to prevent clipping
       .attr("transform", `translate(0,0)`); // No vertical centering
 
     // Debug logs
     console.log("SVG height:", height);
     console.log("barY (bars start):", barY);
     console.log("arcBaseY (arcs start):", arcBaseY);
-
-    // Add zoom in/out (scale only, no pan), centered on the middle of the SVG
-    svg.call(
-      d3
-        .zoom()
-        .scaleExtent([0.5, 8])
-        .on("zoom", (event) => {
-          const t = event.transform;
-          // Center scaling on the middle of the SVG
-          const centerX = width / 2;
-          const centerY = height / 2;
-          chartGroup.attr(
-            "transform",
-            `translate(${centerX},${centerY}) scale(${t.k}) translate(${-centerX},${-centerY + initialY})`,
-          );
-        }),
-    );
-
-    // Draw chapter rects (bars) - bars point downward from the top
     chartGroup
       .append("g")
       .selectAll("rect")
@@ -629,13 +1049,11 @@ const Flare = () => {
       .attr("cursor", "pointer")
       .on("mousemove", function (event, d) {
         d3.select(this).attr("fill", "#b3e5fc");
-        // Get rect position in viewport
-        const rect = this.getBoundingClientRect();
-        showOverlayAboveRect(
+        showOverlayAboveMouse(
           `<div style='font-size:1.08rem;font-weight:700;margin-bottom:0.2rem;'>${d.section ? d.section + " - " : ""}${d.book} - Chapter ${d.chapterNum}</div><div style='font-size:0.92rem;opacity:0.8;'>${d.verseCount} verses, ${d.wordCount || 0} words, ${d.charCount || 0} characters</div>`,
-          rect.left + window.scrollX,
-          rect.top + window.scrollY,
-          rect.width,
+          event.clientX,
+          event.clientY,
+          false, // Chapter tooltip
         );
       })
       .on("mouseleave", function (event, d) {
@@ -645,7 +1063,46 @@ const Flare = () => {
             ? "#ffe082"
             : "#1D84B2",
         );
-        hideOverlayAboveRect();
+        hideOverlay();
+      })
+      .on("click", function (event, d) {
+        // Convert book name to BibleHub format
+        let bookName = d.book.toLowerCase().replace(/\s+/g, "_");
+        const chapterNum = d.chapterNum;
+
+        // Handle special cases for BibleHub URL format
+        const bookNameMap = {
+          "1_kings": "1_kings",
+          "2_kings": "2_kings",
+          "1_samuel": "1_samuel",
+          "2_samuel": "2_samuel",
+          "1_chronicles": "1_chronicles",
+          "2_chronicles": "2_chronicles",
+          "1_corinthians": "1_corinthians",
+          "2_corinthians": "2_corinthians",
+          "1_thessalonians": "1_thessalonians",
+          "2_thessalonians": "2_thessalonians",
+          "1_timothy": "1_timothy",
+          "2_timothy": "2_timothy",
+          "1_peter": "1_peter",
+          "2_peter": "2_peter",
+          "1_john": "1_john",
+          "2_john": "2_john",
+          "3_john": "3_john",
+          song_of_solomon: "song_of_solomon",
+          song_of_songs: "song_of_solomon",
+        };
+
+        // Use mapped name if available, otherwise use the converted name
+        const finalBookName = bookNameMap[bookName] || bookName;
+
+        // Create BibleHub URL
+        const bibleHubUrl = `https://biblehub.com/kjv/${finalBookName}/${chapterNum}.htm`;
+
+        // Open in new tab
+        window.open(bibleHubUrl, "_blank");
+
+        event.stopPropagation();
       });
 
     // Draw arcs (above bars, per chapter, elliptical style like flare.js, always above rects)
@@ -653,7 +1110,7 @@ const Flare = () => {
       .append("g")
       .attr("fill", "none")
       .attr("stroke-opacity", 0.85)
-      .attr("stroke-width", 3.5)
+      .attr("stroke-width", 2)
       .attr("filter", "url(#arc-shadow)");
 
     console.log("Drawing", arcLinks.length, "arcs");
@@ -666,44 +1123,170 @@ const Flare = () => {
       .attr("d", (d) => {
         const x1 = x(d.source) + barWidth / 2;
         const x2 = x(d.target) + barWidth / 2;
-        const r = Math.abs(x2 - x1) / 2;
-        const largeArcFlag = Math.abs(x2 - x1) > width / 2 ? 1 : 0;
-        // Use arcBaseY for both endpoints so arcs are always above bars
-        return `M${x1},${arcBaseY} A${r},${r} 0 ${largeArcFlag},0 ${x2},${arcBaseY}`;
+        const distance = Math.abs(x2 - x1);
+        // Create balanced oval arcs - not too extreme
+        const radiusX = Math.min(distance / 2, 25); // Horizontal radius
+        const radiusY = Math.min(distance / 2.5, 19); // Vertical radius - slightly smaller for oval shape
+
+        const y1 = arcBaseY;
+        const y2 = arcBaseY;
+
+        // Use elliptical arc with different x and y radii for oval shape
+        const largeArcFlag = 0; // Always 0 for semicircle
+        const sweepFlag = 1; // Always 1 for upward arc
+
+        // Create oval arc using elliptical arc command
+        return `M${x1},${y1} A${radiusX},${radiusY} 0 ${largeArcFlag},${sweepFlag} ${x2},${y2}`;
       })
       .attr("cursor", "pointer")
       .on("mouseover", function (event, d) {
-        d3.select(this).attr("stroke-width", 6);
+        // Change color of all arcs in the same paradox
+        arcGroup.selectAll("path").each(function (arcData) {
+          if (arcData.paradoxId === d.paradoxId) {
+            d3.select(this)
+              .attr("stroke", "#ff6b35") // Orange color for hover
+              .attr("stroke-width", 3);
+          }
+        });
+
         // Show only the paradox description in the tooltip
-        const x1 = x(d.source) + barWidth / 2;
-        const x2 = x(d.target) + barWidth / 2;
-        const arcMidX = (x1 + x2) / 2;
-        showOverlayAboveRect(
+        showOverlayAboveMouse(
           `<div style='font-size:1.08rem;font-weight:700;'>${d.desc || d.group || "Paradox"}</div>`,
-          arcMidX,
-          arcBaseY - 30,
-          180,
+          event.clientX,
+          event.clientY,
+          true, // Arc tooltip
         );
       })
       .on("mouseout", function () {
-        d3.select(this).attr("stroke-width", 3.5);
-        hideOverlayAboveRect();
+        // Reset all arcs to their original colors
+        arcGroup.selectAll("path").each(function (arcData) {
+          d3.select(this)
+            .attr("stroke", getArcColor(color, arcData.source, arcData.target))
+            .attr("stroke-width", 2);
+        });
+        hideOverlay();
       })
       .on("click", function (event, d) {
         const linkedChapters = flatRefs(d.refs);
         setClickedArcChapters(linkedChapters);
+        setSelectedArcInfo({
+          description: d.desc || d.group || "Paradox",
+          chapters: linkedChapters,
+          paradoxId: d.paradoxId,
+        });
         event.stopPropagation();
+      })
+      .on("contextmenu", function (event, d) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        // Hide the tooltip immediately when right-clicking
+        hideOverlay();
+
+        // Find the paradox data for this arc
+        // Try to find by ID first, then by description, then by index
+        let paradox = filteredParadoxes.find((p) => p.id === d.paradoxId);
+        if (!paradox) {
+          paradox = filteredParadoxes.find((p) => p.description === d.desc);
+        }
+        if (!paradox && typeof d.paradoxId === "number") {
+          // If paradoxId is a number (index), try to find by index
+          paradox = filteredParadoxes[d.paradoxId];
+        }
+
+        if (paradox) {
+          // Get the D3 container bounds
+          const svgContainer = arcSvgRef.current.closest("#bible-chart");
+          const containerRect = svgContainer
+            ? svgContainer.getBoundingClientRect()
+            : null;
+
+          // Use positioning relative to the D3 container if available, otherwise use viewport
+          let x, y;
+          if (containerRect) {
+            x = event.clientX - containerRect.left;
+            y = event.clientY - containerRect.top;
+          } else {
+            x = event.clientX;
+            y = event.clientY;
+          }
+
+          // Always position menu to the left of cursor to avoid going off the right edge
+          x = x - 260; // menuWidth + 10px gap
+
+          // Context menu dimensions (approximate)
+          const menuWidth = 250;
+          const menuHeight = 50;
+
+          // Ensure menu doesn't go off the left edge
+          if (x < 20) {
+            x = 20;
+          }
+
+          // Position menu just above the cursor
+          y = y - menuHeight - 10;
+
+          // Adjust y position if menu would go off the top edge
+          if (y < 20) {
+            if (containerRect) {
+              y = event.clientY - containerRect.top + 10; // Position below cursor instead
+            } else {
+              y = event.clientY + 10; // Position below cursor instead
+            }
+          }
+
+          // Ensure menu doesn't go off the left edge
+          if (x < 20) {
+            x = 20;
+          }
+
+          // Final check: if menu would still go off the bottom edge
+          if (containerRect) {
+            if (y + menuHeight > containerRect.height - 20) {
+              y = containerRect.height - menuHeight - 20;
+            }
+          } else {
+            if (y + menuHeight > window.innerHeight - 20) {
+              y = window.innerHeight - menuHeight - 20;
+            }
+          }
+
+          // Use relative positioning for the context menu within the D3 container
+          setContextMenu({ visible: true, x: x, y: y, paradox: paradox });
+        }
       });
 
     // Clear chapters when clicking outside the chart
     d3.select("body").on("click.dashboard-clear", function (event) {
       if (!event.target.closest("#bible-chart")) {
-        setClickedArcChapters([]);
+        // Don't clear the selection - keep the current selection visible
+        // setClickedArcChapters([]);
+        // setSelectedArcInfo(null);
       }
     });
 
     return () => {};
   }, [filteredParadoxes, color, books, selectedBook, chapters, translation]);
+
+  // Separate effect for zoom changes - apply to entire SVG like OldTestamentJesus1
+  useLayoutEffect(() => {
+    if (!arcSvgRef.current) return;
+
+    requestAnimationFrame(() => {
+      const svg = d3.select(arcSvgRef.current);
+      svg.style("transform", `scale(${zoomLevel})`);
+    });
+  }, [zoomLevel]);
+
+  // Separate effect for text size changes
+  useLayoutEffect(() => {
+    if (!arcSvgRef.current) return;
+
+    requestAnimationFrame(() => {
+      const svg = d3.select(arcSvgRef.current);
+      svg.selectAll("text").style("font-size", `${textSize}px`);
+    });
+  }, [textSize]);
 
   // Pie chart for books in Old vs New Testament
   useEffect(() => {
@@ -758,6 +1341,306 @@ const Flare = () => {
       );
     legend.exit().remove();
   }, [books]);
+
+  // Book Distribution Pie Chart
+  useEffect(() => {
+    if (!books.length) return;
+
+    // Count books by section
+    const sectionCounts = books.reduce((acc, book) => {
+      const section = (book.section || "").toLowerCase().includes("old")
+        ? "Old Testament"
+        : "New Testament";
+      acc[section] = (acc[section] || 0) + 1;
+      return acc;
+    }, {});
+
+    const pieData = Object.entries(sectionCounts).map(([section, count]) => ({
+      section,
+      count,
+    }));
+
+    // Clear previous chart
+    d3.select("#book-distribution-chart").selectAll("*").remove();
+
+    const width = 300;
+    const height = 200;
+    const radius = Math.min(width, height) / 2 - 20;
+
+    const svg = d3
+      .select("#book-distribution-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${width / 2},${height / 2})`);
+
+    const color = d3
+      .scaleOrdinal()
+      .domain(pieData.map((d) => d.section))
+      .range(["#1D84B2", "#ffb300"]);
+
+    const pie = d3.pie().value((d) => d.count);
+    const arc = d3.arc().innerRadius(30).outerRadius(radius);
+
+    // Draw pie slices
+    svg
+      .selectAll("path")
+      .data(pie(pieData))
+      .join("path")
+      .attr("d", arc)
+      .attr("fill", (d) => color(d.data.section))
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 2)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("stroke-width", 3).attr("stroke", "#333");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("stroke-width", 2).attr("stroke", "#fff");
+      });
+
+    // Add labels
+    svg
+      .selectAll("text")
+      .data(pie(pieData))
+      .join("text")
+      .attr("transform", (d) => `translate(${arc.centroid(d)})`)
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .style("fill", "#fff")
+      .text((d) => `${d.data.section}\n${d.data.count} books`);
+  }, [books]);
+
+  // Chapter Word Count Bar Chart
+  useEffect(() => {
+    if (!chapters.length) return;
+
+    // Get top 10 chapters by word count
+    const topChapters = [...chapters]
+      .sort((a, b) => (b.wordCount || 0) - (a.wordCount || 0))
+      .slice(0, 10);
+
+    // Clear previous chart
+    d3.select("#word-count-chart").selectAll("*").remove();
+
+    const width = 350;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 40, left: 60 };
+
+    const svg = d3
+      .select("#word-count-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const x = d3
+      .scaleBand()
+      .domain(topChapters.map((d, i) => `${d.book} ${d.chapterNum}`))
+      .range([margin.left, width - margin.right])
+      .padding(0.1);
+
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(topChapters, (d) => d.wordCount || 0)])
+      .range([height - margin.bottom, margin.top]);
+
+    // Add bars
+    svg
+      .selectAll("rect")
+      .data(topChapters)
+      .join("rect")
+      .attr("x", (d) => x(`${d.book} ${d.chapterNum}`))
+      .attr("y", (d) => y(d.wordCount || 0))
+      .attr("width", x.bandwidth())
+      .attr("height", (d) => height - margin.bottom - y(d.wordCount || 0))
+      .attr("fill", "#1D84B2")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("fill", "#ffb300");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("fill", "#1D84B2");
+      });
+
+    // Add x-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("font-size", "10px")
+      .attr("transform", "rotate(-45)")
+      .attr("text-anchor", "end");
+
+    // Add y-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("font-size", "10px");
+  }, [chapters]);
+
+  // Paradox Distribution Chart
+  useEffect(() => {
+    if (!paradoxes.length) return;
+
+    // Group paradoxes by subject/keyword
+    const subjectGroups = {};
+    paradoxes.forEach((paradox) => {
+      const desc = (paradox.description || paradox.desc || "").toLowerCase();
+      let subject = "Other";
+
+      if (desc.includes("sabbath")) subject = "Sabbath";
+      else if (desc.includes("jesus") || desc.includes("christ"))
+        subject = "Jesus";
+      else if (desc.includes("god")) subject = "God";
+      else if (desc.includes("love")) subject = "Love";
+      else if (desc.includes("faith")) subject = "Faith";
+      else if (desc.includes("grace")) subject = "Grace";
+      else if (desc.includes("works")) subject = "Works";
+      else if (desc.includes("dead") || desc.includes("death"))
+        subject = "State of the Dead";
+      else if (desc.includes("paradox")) subject = "Paradoxes";
+
+      subjectGroups[subject] = (subjectGroups[subject] || 0) + 1;
+    });
+
+    const chartData = Object.entries(subjectGroups).map(([subject, count]) => ({
+      subject,
+      count,
+    }));
+
+    // Clear previous chart
+    d3.select("#paradox-distribution-chart").selectAll("*").remove();
+
+    const width = 350;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 40, left: 80 };
+
+    const svg = d3
+      .select("#paradox-distribution-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const y = d3
+      .scaleBand()
+      .domain(chartData.map((d) => d.subject))
+      .range([margin.top, height - margin.bottom])
+      .padding(0.1);
+
+    const x = d3
+      .scaleLinear()
+      .domain([0, d3.max(chartData, (d) => d.count)])
+      .range([margin.left, width - margin.right]);
+
+    // Add bars
+    svg
+      .selectAll("rect")
+      .data(chartData)
+      .join("rect")
+      .attr("x", margin.left)
+      .attr("y", (d) => y(d.subject))
+      .attr("width", (d) => x(d.count) - margin.left)
+      .attr("height", y.bandwidth())
+      .attr("fill", "#6e4b91")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("fill", "#ff6b35");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr("fill", "#6e4b91");
+      });
+
+    // Add x-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+      .style("font-size", "10px");
+
+    // Add y-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("font-size", "10px");
+  }, [paradoxes]);
+
+  // Translation Comparison Chart
+  useEffect(() => {
+    // Clear previous chart
+    d3.select("#translation-chart").selectAll("*").remove();
+
+    const width = 350;
+    const height = 200;
+    const margin = { top: 20, right: 20, bottom: 40, left: 80 };
+
+    const svg = d3
+      .select("#translation-chart")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    const y = d3
+      .scaleBand()
+      .domain(TRANSLATIONS.map((t) => t.label))
+      .range([margin.top, height - margin.bottom])
+      .padding(0.1);
+
+    const x = d3
+      .scaleLinear()
+      .domain([0, TRANSLATIONS.length])
+      .range([margin.left, width - margin.right]);
+
+    // Add bars for each translation
+    svg
+      .selectAll("rect")
+      .data(TRANSLATIONS)
+      .join("rect")
+      .attr("x", margin.left)
+      .attr("y", (d, i) => y(d.label))
+      .attr("width", (d, i) => x(i + 1) - margin.left)
+      .attr("height", y.bandwidth())
+      .attr("fill", (d, i) => (d.value === translation ? "#ffb300" : "#1D84B2"))
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1)
+      .on("mouseover", function (event, d) {
+        d3.select(this).attr("fill", "#ff6b35");
+      })
+      .on("mouseout", function (event, d) {
+        d3.select(this).attr(
+          "fill",
+          d.value === translation ? "#ffb300" : "#1D84B2",
+        );
+      });
+
+    // Add y-axis
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y))
+      .selectAll("text")
+      .style("font-size", "9px");
+
+    // Add current translation indicator
+    svg
+      .append("text")
+      .attr("x", width - margin.right)
+      .attr("y", margin.top)
+      .attr("text-anchor", "end")
+      .style("font-size", "12px")
+      .style("font-weight", "bold")
+      .style("fill", "#ffb300")
+      .text("Current");
+  }, [translation]);
 
   // Treemap for Book/Chapter/Verse Hierarchy (by book, sized by word count)
   useEffect(() => {
@@ -831,7 +1714,13 @@ const Flare = () => {
       {error && <div style={{ color: "red" }}>{error}</div>}
       <div
         className="card"
-        style={{ margin: "0 auto", maxWidth: 1100, marginBottom: 32 }}
+        style={{
+          margin: "0 auto",
+          maxWidth: 1100,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "80vh",
+        }}
       >
         <div
           className="card-header"
@@ -904,136 +1793,648 @@ const Flare = () => {
           id="bible-chart"
           className="card-body d-flex justify-content-center position-relative"
           style={{
-            minHeight: 420,
-            maxHeight: 420,
-            overflow: "hidden",
-            background: "#fafbfc",
+            flex: 1,
+            minHeight: 500,
+            overflow: "visible",
+            background: "#fff",
             borderRadius: 12,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            padding: 0,
           }}
         >
           <svg
             ref={arcSvgRef}
             style={{
-              width: Math.max(mediumWidth, chapters.length * 20),
-              height: mediumHeight,
+              width: "100%",
+              height: "100%",
               maxWidth: "100%",
               background: "#fff",
-              border: "1px solid #eee",
-              borderRadius: 8,
-              maxHeight: 420,
-              overflow: "hidden",
+              display: "block",
+              position: "absolute",
+              top: 0,
+              left: 0,
             }}
           />
+
+          {/* Context Menu */}
+          {contextMenu.visible && (
+            <div
+              className="paradox-context-menu"
+              style={{
+                position: "absolute",
+                top: contextMenu.y,
+                left: contextMenu.x,
+                zIndex: 10000,
+                background: "#fff",
+                border: "1px solid #ccc",
+                padding: "8px",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                display: "flex",
+                flexDirection: "row",
+                gap: "8px",
+                borderRadius: "6px",
+                minWidth: "200px",
+                maxWidth: "300px",
+                overflow: "visible",
+                pointerEvents: "auto",
+              }}
+            >
+              <button
+                onClick={() => handleNewParadox()}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#4caf50",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#f1f8e9")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Create New Paradox"
+              >
+                New Paradox
+              </button>
+              <button
+                onClick={() => handleEditParadox(contextMenu.paradox)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2196f3",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#f0f8ff")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Edit Paradox"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleRename(contextMenu.paradox)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2196f3",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#f0f8ff")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Rename Paradox"
+              >
+                Rename
+              </button>
+
+              <button
+                onClick={() => handleDelete(contextMenu.paradox)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#f44336",
+                  fontSize: "12px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  padding: "6px 10px",
+                  borderRadius: "4px",
+                  transition: "background-color 0.2s",
+                  textAlign: "center",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) =>
+                  (e.target.style.backgroundColor = "#ffebee")
+                }
+                onMouseLeave={(e) =>
+                  (e.target.style.backgroundColor = "transparent")
+                }
+                title="Delete Paradox"
+              >
+                Delete
+              </button>
+            </div>
+          )}
         </div>
       </div>
-      <div
-        style={{
-          minHeight: 32,
-          margin: "0 auto",
-          maxWidth: 1100,
-          textAlign: "center",
-          fontSize: 15,
-          color: "#444",
-          marginTop: 12,
-        }}
-      >
-        {clickedArcChapters.length > 0 && (
-          <span>Linked chapters: {clickedArcChapters.join(", ")}</span>
-        )}
-      </div>
-      {/* Pie chart and Treemap for books in Old vs New Testament */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "flex-start",
-          justifyContent: "center",
-          gap: 32,
-          margin: "32px 0 0 0",
-        }}
-      >
+      {(() => {
+        // Always show Sabbath if no selection, or show selected arc info
+        if (selectedArcInfo) {
+          return selectedArcInfo;
+        } else if (paradoxes.length > 0) {
+          const sabbathParadox = paradoxes.find((p) =>
+            (p.description || p.desc || "").toLowerCase().includes("sabbath"),
+          );
+          if (sabbathParadox) {
+            const sabbathRefs = flatRefs(sabbathParadox.refs);
+            return {
+              description:
+                sabbathParadox.description ||
+                sabbathParadox.desc ||
+                "The Seventh Day Sabbath",
+              chapters: sabbathRefs,
+              paradoxId: sabbathParadox.id || "sabbath",
+            };
+          }
+        }
+        return null;
+      })() && (
         <div
           style={{
+            minHeight: 120,
+            margin: "20px auto",
+            padding: "20px",
+            width: "100%",
             background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-            padding: 24,
-            width: 280,
-            minWidth: 240,
-            maxWidth: 280,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            borderRadius: "5px",
+            border: "1px solid #e9ecef",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           }}
         >
-          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>
-            Books in Old vs New Testament
+          <div style={{ textAlign: "center", marginBottom: "15px" }}>
+            <h3
+              style={{
+                fontSize: "18px",
+                color: "#333",
+                margin: "0 0 10px 0",
+                fontWeight: "600",
+              }}
+            >
+              Selected Paradox:{" "}
+              {(() => {
+                // Always show Sabbath if no selection, or show selected arc info
+                if (selectedArcInfo) {
+                  return selectedArcInfo.description;
+                } else if (paradoxes.length > 0) {
+                  const sabbathParadox = paradoxes.find((p) =>
+                    (p.description || p.desc || "")
+                      .toLowerCase()
+                      .includes("sabbath"),
+                  );
+                  if (sabbathParadox) {
+                    return (
+                      sabbathParadox.description ||
+                      sabbathParadox.desc ||
+                      "The Seventh Day Sabbath"
+                    );
+                  }
+                }
+                return "";
+              })()}
+            </h3>
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#666",
+                margin: "0",
+                fontStyle: "italic",
+              }}
+            >
+              Click any arc above to view different chapters
+            </p>
           </div>
-          <svg id="pie-chart" />
           <div
-            id="pie-legend"
             style={{
-              marginTop: 8,
-              fontSize: 15,
               display: "flex",
-              gap: 18,
+              flexWrap: "wrap",
+              gap: "8px",
               justifyContent: "center",
+              padding: "10px",
             }}
-          ></div>
+          >
+            {(() => {
+              // Always show Sabbath if no selection, or show selected arc info
+              if (selectedArcInfo) {
+                return selectedArcInfo.chapters;
+              } else if (paradoxes.length > 0) {
+                const sabbathParadox = paradoxes.find((p) =>
+                  (p.description || p.desc || "")
+                    .toLowerCase()
+                    .includes("sabbath"),
+                );
+                if (sabbathParadox) {
+                  return flatRefs(sabbathParadox.refs);
+                }
+              }
+              return [];
+            })().map((chapter, index) => (
+              <span
+                key={index}
+                style={{
+                  background: "#1D84B2",
+                  color: "white",
+                  padding: "6px 12px",
+                  borderRadius: "20px",
+                  fontSize: "13px",
+                  fontWeight: "500",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                }}
+              >
+                {chapter}
+              </span>
+            ))}
+          </div>
         </div>
-        <div
+      )}
+      <BibleTextDisplay />
+
+      {/* Additional Tips and Information Grid */}
+      <div
+        style={{
+          margin: "20px auto",
+          padding: "20px",
+          width: "100%",
+          maxWidth: "1100px",
+          background: "#fff",
+          borderRadius: "12px",
+          border: "1px solid #e9ecef",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h3
           style={{
-            background: "#fff",
-            borderRadius: 12,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
-            padding: 24,
-            width: 280,
-            minWidth: 240,
-            maxWidth: 280,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            position: "relative",
+            fontSize: "20px",
+            color: "#333",
+            margin: "0 0 20px 0",
+            fontWeight: "600",
+            textAlign: "center",
           }}
         >
-          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>
-            Book Size Treemap (by words)
-          </div>
-          <svg id="treemap-chart" />
+          Bible Study Insights & Statistics
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "20px",
+            marginTop: "20px",
+          }}
+        >
+          {/* Left Column */}
           <div
-            id="treemap-tooltip"
             style={{
-              display: "none",
-              position: "fixed",
-              pointerEvents: "none",
-              background: "rgba(40,40,40,0.97)",
-              color: "#fff",
-              padding: "7px 12px",
-              borderRadius: 8,
-              fontSize: 14,
-              zIndex: 9999,
-              boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
             }}
-          ></div>
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+              }}
+            >
+              📚 Translation & Book Statistics
+            </h4>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Current Translation:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {TRANSLATION_LABELS[translation] || translation.toUpperCase()}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Books:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {books.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Chapters:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {chapters.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Words:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {chapters
+                    .reduce((sum, ch) => sum + (ch.wordCount || 0), 0)
+                    .toLocaleString()}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Characters:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {chapters
+                    .reduce((sum, ch) => sum + (ch.charCount || 0), 0)
+                    .toLocaleString()}
+                </span>
+              </div>
+              {selectedBook && (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span style={{ color: "#666" }}>Selected Book:</span>
+                  <span style={{ fontWeight: "600", color: "#333" }}>
+                    {books.find((b) => String(b.id) === String(selectedBook))
+                      ?.short_name || "Unknown"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column */}
+          <div
+            style={{
+              background: "#f8f9fa",
+              padding: "20px",
+              borderRadius: "8px",
+              border: "1px solid #e9ecef",
+            }}
+          >
+            <h4
+              style={{
+                fontSize: "16px",
+                color: "#1D84B2",
+                margin: "0 0 15px 0",
+                fontWeight: "600",
+              }}
+            >
+              🔍 Paradox Analysis
+            </h4>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Total Paradoxes:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {paradoxes.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Filtered Paradoxes:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {filteredParadoxes.length}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Current Subject:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {subject}
+                </span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ color: "#666" }}>Arc Color Theme:</span>
+                <span style={{ fontWeight: "600", color: "#333" }}>
+                  {color}
+                </span>
+              </div>
+              {selectedArcInfo && (
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span style={{ color: "#666" }}>Selected Chapters:</span>
+                  <span style={{ fontWeight: "600", color: "#333" }}>
+                    {selectedArcInfo.chapters.length}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Tips Section */}
+        <div
+          style={{
+            marginTop: "25px",
+            padding: "20px",
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            borderRadius: "8px",
+            color: "white",
+          }}
+        >
+          <h4
+            style={{
+              fontSize: "18px",
+              margin: "0 0 15px 0",
+              fontWeight: "600",
+              textAlign: "center",
+            }}
+          >
+            💡 Study Tips & Navigation
+          </h4>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+              gap: "15px",
+            }}
+          >
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>🎯</span>
+              <div>
+                <strong>Click on arcs</strong> to explore different paradoxes
+                and their connected chapters
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>📖</span>
+              <div>
+                <strong>Click on chapter bars</strong> to open BibleHub for
+                detailed reading
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>🔍</span>
+              <div>
+                <strong>Use filters</strong> to focus on specific books,
+                subjects, or translations
+              </div>
+            </div>
+            <div
+              style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}
+            >
+              <span style={{ fontSize: "20px" }}>📊</span>
+              <div>
+                <strong>Hover over elements</strong> to see detailed tooltips
+                and statistics
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Stats Row */}
+        <div
+          style={{
+            marginTop: "20px",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gap: "15px",
+          }}
+        >
+          <div
+            style={{
+              background: "#e3f2fd",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #bbdefb",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#1976d2" }}
+            >
+              {
+                books.filter((b) =>
+                  (b.section || "").toLowerCase().includes("old"),
+                ).length
+              }
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              Old Testament Books
+            </div>
+          </div>
+          <div
+            style={{
+              background: "#fff3e0",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #ffcc80",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#f57c00" }}
+            >
+              {
+                books.filter((b) =>
+                  (b.section || "").toLowerCase().includes("new"),
+                ).length
+              }
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              New Testament Books
+            </div>
+          </div>
+          <div
+            style={{
+              background: "#f3e5f5",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #e1bee7",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#7b1fa2" }}
+            >
+              {chapters
+                .reduce((sum, ch) => sum + (ch.verseCount || 0), 0)
+                .toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>Total Verses</div>
+          </div>
+          <div
+            style={{
+              background: "#e8f5e8",
+              padding: "15px",
+              borderRadius: "8px",
+              textAlign: "center",
+              border: "1px solid #c8e6c9",
+            }}
+          >
+            <div
+              style={{ fontSize: "24px", fontWeight: "bold", color: "#388e3c" }}
+            >
+              {Math.round(
+                chapters.reduce((sum, ch) => sum + (ch.wordCount || 0), 0) /
+                  chapters.length,
+              ).toLocaleString()}
+            </div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              Avg Words/Chapter
+            </div>
+          </div>
         </div>
       </div>
-      <style>{`
-        .d3-tooltip {
-          font-size: 1rem;
-          z-index: 1000;
-        }
-        .form-control, .book-select, .type-select {
-          min-width: 180px;
-          padding: 8px 12px;
-          border-radius: 6px;
-          border: 1px solid #ccc;
-          font-size: 1rem;
-        }
-        .card { box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
-      `}</style>
+
+      {/* Edit Paradox Form */}
+      <EditParadoxForm
+        editParadoxForm={editParadoxForm}
+        setEditParadoxForm={setEditParadoxForm}
+        editingRefs={editingRefs}
+        setEditingRefs={setEditingRefs}
+        newRefKey={newRefKey}
+        setNewRefKey={setNewRefKey}
+        newRefValue={newRefValue}
+        setNewRefValue={setNewRefValue}
+        handleEditParadoxSubmit={handleEditParadoxSubmit}
+        handleEditParadoxCancel={handleEditParadoxCancel}
+        handleAddRefKey={handleAddRefKey}
+        handleRemoveRefKey={handleRemoveRefKey}
+        handleAddRefToKey={handleAddRefToKey}
+        handleRemoveRefFromKey={handleRemoveRefFromKey}
+      />
+      {/* Rename form */}
+      <RenameParadoxForm
+        editingNode={editingNode}
+        editName={editName}
+        setEditName={setEditName}
+        handleRenameSubmit={handleRenameSubmit}
+        handleRenameCancel={handleRenameCancel}
+      />
+      {/* New Paradox Form */}
+      <NewParadoxForm
+        newParadoxForm={newParadoxForm}
+        setNewParadoxForm={setNewParadoxForm}
+        newParadoxRefs={newParadoxRefs}
+        setNewParadoxRefs={setNewParadoxRefs}
+        newParadoxRefKey={newParadoxRefKey}
+        setNewParadoxRefKey={setNewParadoxRefKey}
+        newParadoxRefValue={newParadoxRefValue}
+        setNewParadoxRefValue={setNewParadoxRefValue}
+        handleNewParadoxSubmit={handleNewParadoxSubmit}
+        handleNewParadoxCancel={handleNewParadoxCancel}
+        handleAddNewParadoxRefKey={handleAddNewParadoxRefKey}
+        handleRemoveNewParadoxRefKey={handleRemoveNewParadoxRefKey}
+        handleAddRefToNewParadoxKey={handleAddRefToNewParadoxKey}
+        handleRemoveRefFromNewParadoxKey={handleRemoveRefFromNewParadoxKey}
+      />
     </div>
   );
 };
