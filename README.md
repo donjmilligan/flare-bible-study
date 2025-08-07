@@ -4,9 +4,16 @@
 
 <h2>An App Intended for Presentations and Fit for Scriptural Research</h2>
 
-Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. This relies on user created scriptural cross reference data, and you'll need to create your own additional JSON files, or extend the ones in this project.
+Here you will find an app that can map cross references and subjects at the same time, in a couple of ways. This relies on user created scriptural cross reference data.
 
-Most files other than index.php and mobile.php use the D3.js hierarchical edge bundling chart (hierarchical many to many relationships) which is great for subject mapping and for presentations. 
+---
+
+## ⚙️ Prerequisites
+
+- **Node.js** (v18+)
+- **PostgreSQL** v14+ 
+- **npm** or **pnpm**
+
 
 ## Table of contents
 
