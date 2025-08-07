@@ -17,7 +17,7 @@ Before you begin, ensure you have the following installed on your machine:
 - Git (to clone the repository)
 - PostgreSQL (to set up the database)
 
-> ✅ **Nx is used locally**, so you do **not** need to install it globally. We'll use `npx` to run commands.
+> ✅ **Nx is used locally**, so you do **not** need to install it globally.
 
 ---
 
@@ -33,7 +33,7 @@ cd flare-bible-study
 ## 🗃️ PostgreSQL Database Setup
 
 ### Step 1: Create the Database
-Create a PostgreSQL database called `bible_db` or your own database.
+Create a PostgreSQL database called `bible_db` or your own database_name.
 
 You can use `psql` or a GUI like pgAdmin.
 
