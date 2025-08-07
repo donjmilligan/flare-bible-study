@@ -72,10 +72,10 @@ router.get("/chapters/:chapterId", async (req, res) => {
 });
 // ... existing code ...
 
-router.get("/paradoxes", async (req, res) => {
+router.get("/crossreferences", async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT id, group_name, description, refs FROM bible_paradoxes",
+      "SELECT id, group_name, description, refs FROM cross_reference",
     );
     res.json(result.rows);
   } catch (err) {
@@ -84,13 +84,13 @@ router.get("/paradoxes", async (req, res) => {
 });
 
 // PUT update a specific paradox
-router.put("/paradoxes/:id", async (req, res) => {
+router.put("/crossreferences/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { description, group_name, refs } = req.body;
 
     const result = await pool.query(
-      "UPDATE bible_paradoxes SET description = $1, group_name = $2, refs = $3, updated_at = NOW() WHERE id = $4 RETURNING *",
+      "UPDATE cross_reference SET description = $1, group_name = $2, refs = $3, updated_at = NOW() WHERE id = $4 RETURNING *",
       [description, group_name, JSON.stringify(refs), id],
     );
 
@@ -105,12 +105,12 @@ router.put("/paradoxes/:id", async (req, res) => {
 });
 
 // POST create a new paradox
-router.post("/paradoxes", async (req, res) => {
+router.post("/crossreferences", async (req, res) => {
   try {
     const { description, group_name, refs } = req.body;
 
     const result = await pool.query(
-      "INSERT INTO bible_paradoxes (description, group_name, refs) VALUES ($1, $2, $3) RETURNING *",
+      "INSERT INTO cross_reference (description, group_name, refs) VALUES ($1, $2, $3) RETURNING *",
       [description, group_name, JSON.stringify(refs)],
     );
 
@@ -121,12 +121,12 @@ router.post("/paradoxes", async (req, res) => {
 });
 
 // DELETE a specific paradox
-router.delete("/paradoxes/:id", async (req, res) => {
+router.delete("/crossreferences/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
     const result = await pool.query(
-      "DELETE FROM bible_paradoxes WHERE id = $1 RETURNING *",
+      "DELETE FROM cross_reference WHERE id = $1 RETURNING *",
       [id],
     );
 

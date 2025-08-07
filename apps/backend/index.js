@@ -36,20 +36,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// Root endpoint
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "Welcome to Flare Bible Study API",
-    endpoints: {
-      health: "/health",
-      bibleData: "/api/bible/oldtestamentjesus1",
-      filteredData: "/api/bible/oldtestamentjesus1/filter",
-      visualization: "/api/bible/oldtestamentjesus1/visualization",
-    },
-  });
-});
-
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -70,12 +56,4 @@ app.use("*", (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📊 API endpoints:`);
-  console.log(`   - Health check: http://localhost:${PORT}/health`);
-  console.log(
-    `   - Bible data: http://localhost:${PORT}/api/bible/oldtestamentjesus1`,
-  );
-  console.log(
-    `   - Visualization: http://localhost:${PORT}/api/bible/oldtestamentjesus1/visualization`,
-  );
 });
