@@ -103,10 +103,10 @@ cd apps/backend
 
 and set up
 ```
-DB_HOST=localhost-> this one is defualt
+DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=your database name 
-DB_USER=postgres
+DB_USER=postgres-> this one is defualt if you create for example bible_user change to bible_user
 DB_PASSWORD=your password
 PORT=3001
 ```
