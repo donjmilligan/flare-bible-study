@@ -51,3 +51,91 @@ CREATE DATABASE bible_db;
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE bible_db TO bible_user;
 
+### Step 2: Import SQL Data
+You’ll find the SQL file in:
+```
+databases/bible_db.sql
+```
+To import:
+Assuming you are in the root of the cloned project (flare-bible-study), run:
+```
+psql -U bible_user -d bible_db -f databases/bible_db.sql
+```
+
+### 🖥️ Option 2: Using pgAdmin
+Open pgAdmin and log in.
+
+Create Database:
+
+Right-click on Databases → Create → Database
+
+Name: bible_db
+
+Create User:
+
+Right-click on Login/Group Roles → Create → Login/Group Role
+
+Role Name: bible_user
+
+Under Definition: Set a password.
+
+Under Privileges: Grant all privileges (select Yes for all).
+
+Open the Query Tool:
+
+Right-click the bible_db database → Query Tool
+
+Click the folder icon and open the SQL file:
+👉 Navigate to:
+flare-bible-study/databases/bible_db.sql
+(Use your computer’s full path if needed, like C:/Users/YourName/...)
+
+Click the ▶️ Execute button to import the database schema and data.
+
+
+## 🛠️ Environment Setup
+
+Create a .env file inside the apps/backend folder:
+
+```
+cd apps/backend
+```
+
+and set up
+```
+DB_HOST=localhost-> this one is defualt
+DB_PORT=5432
+DB_NAME=your database name 
+DB_USER=postgres
+DB_PASSWORD=your password
+PORT=3001
+```
+## 📥 Install Dependencies
+after that make sure at the right folder path and then install depeendencies
+
+```
+# At the root
+npm install
+
+# Backend
+cd apps/backend
+npm install
+
+# Frontend
+cd ../frontend
+npm install
+```
+## 🛠️ Build the Project
+at root run this command to build for production
+```
+npm run build:frontend
+npm run build:backend
+```
+## 🚀 Run the Project
+After building, you can run both frontend and backend:
+```
+npm run start:frontend
+npm run start:backend
+```
+
+
